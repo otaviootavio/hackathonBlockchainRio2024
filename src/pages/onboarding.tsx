@@ -17,8 +17,8 @@ export default function Onboarding() {
               id="payments"
               className="mb-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               onChange={(e) => setPayment(e.target.value)}
+              defaultValue="Choose a payment method"
             >
-              <option selected>Choose a payment method</option>
               <option value="wallet">Wallet</option>
               <option value="pix">PIX</option>
             </select>
