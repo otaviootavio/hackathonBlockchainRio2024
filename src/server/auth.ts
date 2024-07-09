@@ -53,6 +53,11 @@ export const authOptions: NextAuthOptions = {
       clientId: env.AUTH0_CLIENT_ID,
       clientSecret: env.AUTH0_CLIENT_SECRET,
       issuer: env.AUTH0_ISSUER,
+      authorization: {
+        params: {
+          prompt: "login",
+        },
+      },
     }),
     // DiscordProvider({
     //   clientId: env.DISCORD_CLIENT_ID,
