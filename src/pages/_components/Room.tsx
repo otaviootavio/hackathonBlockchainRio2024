@@ -1,4 +1,6 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import { api } from "~/utils/api";
 
 export default function Room({
   room,
@@ -6,7 +8,16 @@ export default function Room({
   room: { name: string; description: string; id: string };
 }) {
   const router = useRouter();
+  const session = useSession();
+  const deleteRoom = api.room.deleteRoom.useMutation();
+  const rooms = api.room.getRoomsByUserIdInEachRoom.useQuery({
+    userId: session.data?.user?.id ?? "",
+  });
 
+  const handleDeleteRoom = async () => {
+    await deleteRoom.mutateAsync({ id: room.id });
+    rooms.refetch();
+  };
   const handleClick = () => {
     router.push(`/room/${room.id}`);
   };
@@ -23,6 +34,12 @@ export default function Room({
           className="rounded border border-gray-300 bg-gray-200 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-300"
         >
           Join
+        </button>
+        <button
+          onClick={handleDeleteRoom}
+          className="rounded border border-gray-300 bg-red-200 px-4 py-2 font-semibold text-red-700 hover:bg-red-300"
+        >
+          Delete
         </button>
       </div>
     </div>

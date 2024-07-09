@@ -6,6 +6,7 @@ import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
+import Auth from "./_components/Auth";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -14,7 +15,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <div className={GeistSans.className}>
-        <Component {...pageProps} />
+        <Auth>
+          <Component {...pageProps} />
+        </Auth>
       </div>
     </SessionProvider>
   );

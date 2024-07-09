@@ -1,11 +1,31 @@
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import { useState } from "react";
+import { api } from "~/utils/api";
 
 export default function NewRoom() {
+  const [name, setName] = useState("");
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [description, setDescription] = useState("");
+  const createRoom = api.room.createRoom.useMutation();
   const router = useRouter();
-  const handleSubmit = () => {
-    const sleep = (ms = 1000) => new Promise((r) => setTimeout(r, ms));
-    sleep(3000).then(() => router.push("/rooms"));
+  const session = useSession();
+
+  const handleSubmit = async () => {
+    createRoom
+      .mutateAsync({
+        name,
+        totalPrice,
+        description,
+        participantName: session.data?.user?.name ?? "",
+        participantPayed: false,
+        userId: session.data?.user?.id ?? "",
+      })
+      .then((x) => {
+        router.push("/rooms");
+      });
   };
+
   return (
     <div className="flex h-screen min-w-96 flex-col items-center bg-blue-200">
       <div className="min-w-96 gap-4">
@@ -21,6 +41,7 @@ export default function NewRoom() {
                 Room Name
               </label>
               <input
+                onChange={(e) => setName(e.target.value)}
                 type="text"
                 id="roomName"
                 className="mb-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
@@ -31,6 +52,7 @@ export default function NewRoom() {
                 Room Price (in ETH)
               </label>
               <input
+                onChange={(e) => setTotalPrice(Number(e.target.value))}
                 type="text"
                 id="roomName"
                 className="mb-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
@@ -41,6 +63,7 @@ export default function NewRoom() {
                 Room Description
               </label>
               <textarea
+                onChange={(e) => setDescription(e.target.value)}
                 id="roomDescription"
                 className="mb-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
               />

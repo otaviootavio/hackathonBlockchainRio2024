@@ -1,5 +1,9 @@
 import { postRouter } from "~/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
+import { paymentInfoRouter } from "./routers/paymentInfo";
+import { userProfileRouter } from "./routers/profile";
+import { participantRouter } from "./routers/participant";
+import { roomRouter } from "./routers/room";
 
 /**
  * This is the primary router for your server.
@@ -8,6 +12,10 @@ import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   post: postRouter,
+  room: roomRouter,
+  participant: participantRouter,
+  userProfile: userProfileRouter,
+  paymentInfo: paymentInfoRouter,
 });
 
 // export type definition of API

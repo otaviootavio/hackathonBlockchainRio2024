@@ -1,46 +1,33 @@
 import { useRouter } from "next/router";
 import Room from "./_components/Room";
-
-const userProfile = {
-  name: "John Doe",
-  wallet: "0x1234567890",
-  pix: "11 9876 54321",
-};
-
-const rooms = [
-  {
-    name: "Pizza Room",
-    description: "Pizza Ordering Room",
-    id: "1",
-  },
-  {
-    name: "Coffee Room",
-    description: "Coffee Ordering Room",
-    id: "2",
-  },
-  {
-    name: "Starbucks Room",
-    description: "Starbucks Ordering Room",
-    id: "3",
-  },
-  {
-    name: "Burger Room",
-    description: "Burger Ordering Room",
-    id: "4",
-  },
-];
+import { signOut, useSession } from "next-auth/react";
+import { api } from "~/utils/api";
 
 export default function Rooms() {
   const router = useRouter();
+  const session = useSession();
+
+  const rooms = api.room.getRoomsByUserIdInEachRoom.useQuery({
+    userId: session.data?.user?.id ?? "",
+  });
 
   return (
     <div className="flex h-screen flex-col items-center bg-blue-200">
       <div className="min-w-96 gap-4">
         <div className="rounded-lg border-2 bg-white p-4">
           <div className="mb-5 flex flex-row items-center justify-between">
-            <p className="text-sm">{userProfile.name}</p>
-            <p className="text-sm">{userProfile.wallet}</p>
-            <p className="text-sm">{userProfile.pix}</p>
+            <p
+              className="text-sm text-blue-800 underline"
+              onClick={() => {
+                router.push("/");
+                signOut();
+              }}
+            >
+              Sign out
+            </p>
+          </div>
+          <div className="mb-5 flex flex-row items-center justify-between">
+            <p className="text-sm">{JSON.stringify(session.data?.user.name)}</p>
           </div>
           <div className="flex flex-row justify-between">
             <div>
@@ -57,11 +44,17 @@ export default function Rooms() {
             </div>
           </div>
           <div className="flex flex-col gap-4">
-            {rooms.map((room) => (
-              <div key={room.id}>
-                <Room room={room} />
-              </div>
-            ))}
+            {rooms.isLoading ? (
+              <div>Loading...</div>
+            ) : rooms.data?.length ? (
+              rooms.data.map((room) => (
+                <div key={room.id}>
+                  <Room room={room} />
+                </div>
+              ))
+            ) : (
+              <div>No Rooms</div>
+            )}
           </div>
         </div>
       </div>
