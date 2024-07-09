@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
     provider = "prisma-client-js"
 }
@@ -71,4 +68,40 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Room {
+    id          String       @id @default(uuid())
+    name        String
+    description String
+    totalPrice  Int
+    paymentInfo PaymentInfo?
+    participants Participant[]
+}
+
+model Participant {
+  id      String @id @default(uuid())
+  name    String
+  payed   Boolean
+  roomId  String
+  userId  String
+  room    Room @relation(fields: [roomId], references: [id])
+}
+
+
+model UserProfile {
+    id     String @id @default(cuid())
+    name   String
+    wallet String
+    pix    String
+}
+
+model PaymentInfo {
+    id         String @id @default(uuid())
+    payTo      String
+    type       String
+    inputType  String
+    inputValue String
+    roomId     String @unique
+    room       Room @relation(fields: [roomId], references: [id])
 }
