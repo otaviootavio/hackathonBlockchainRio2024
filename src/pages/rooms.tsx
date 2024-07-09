@@ -6,7 +6,7 @@ import {
   useSession,
 } from "next-auth/react";
 import { api } from "~/utils/api";
-import { Room } from "./_components/Room";
+import { Room } from "../_components/Room";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,

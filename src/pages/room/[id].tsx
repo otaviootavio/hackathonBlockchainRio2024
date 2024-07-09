@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { type GetSessionParams, getSession, useSession } from "next-auth/react";
-import { Participant } from "../_components/Participant";
+import { Participant } from "../../_components/Participant";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
