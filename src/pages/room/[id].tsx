@@ -84,14 +84,14 @@ export default function Room() {
             <p className="flex flex-col justify-center text-lg">
               {room.data?.totalPrice} ETH
             </p>
-            {(room.data &&
-              room.data.participants.filter(
-                (participant) => participant.userId == session.data?.user?.id,
-              ).length > 0 && (
-                <p className=" flex flex-col justify-center rounded-full bg-green-400 p-2 align-middle font-bold text-white">
-                  Joined
-                </p>
-              )) ?? (
+            {room.data &&
+            room.data.participants.filter(
+              (participant) => participant.userId == session.data?.user?.id,
+            ).length > 0 ? (
+              <p className=" flex flex-col justify-center rounded-full bg-green-400 p-2 align-middle font-bold text-white">
+                Joined
+              </p>
+            ) : (
               <button
                 onClick={joinRoom}
                 type="button"
