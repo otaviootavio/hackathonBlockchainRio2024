@@ -1,14 +1,10 @@
 import { signIn, useSession } from "next-auth/react";
-import { useRouter } from "next/router";
 import Head from "next/head";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/router";
 
 export default function Home() {
   const { status } = useSession();
-
-  if (status === "authenticated") {
-    redirect("/rooms");
-  }
+  const router = useRouter();
 
   return (
     <>
@@ -29,14 +25,31 @@ export default function Home() {
           <p className="text-2xl text-white">
             The ultimate app for splitting your pizza orders!
           </p>
-          <div className="flex flex-col items-center gap-4">
-            <button
-              className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
-              onClick={() => void signIn()}
-            >
-              Sign in to get started
-            </button>
-          </div>
+          {status === "authenticated" ? (
+            <div className="flex flex-col items-center gap-4">
+              <button
+                className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+                onClick={() => void router.push("/rooms")}
+              >
+                Go to rooms
+              </button>
+            </div>
+          ) : status === "unauthenticated" ? (
+            <div className="flex flex-col items-center gap-4">
+              <button
+                className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+                onClick={() => void signIn()}
+              >
+                Sign in to get started
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-4">
+              <button className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20">
+                Loading...
+              </button>
+            </div>
+          )}
         </div>
       </main>
     </>

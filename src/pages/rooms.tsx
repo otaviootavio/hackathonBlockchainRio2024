@@ -1,7 +1,31 @@
 import { useRouter } from "next/router";
-import Room from "./_components/Room";
-import { signOut, useSession } from "next-auth/react";
+import {
+  type GetSessionParams,
+  getSession,
+  signOut,
+  useSession,
+} from "next-auth/react";
 import { api } from "~/utils/api";
+import { Room } from "./_components/Room";
+
+export async function getServerSideProps(
+  context: GetSessionParams | undefined,
+) {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: { session },
+  };
+}
 
 export default function Rooms() {
   const router = useRouter();

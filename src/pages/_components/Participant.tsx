@@ -1,5 +1,5 @@
-export default function Participant({
-  participant,
+export function Participant({
+  participant = { name: "Unknown Participant", payed: false, id: "" },
   removeParticipant,
 }: {
   participant: { name: string; payed: boolean; id: string };

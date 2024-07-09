@@ -2,8 +2,8 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 
-export default function Room({
-  room,
+export function Room({
+  room = { name: "Unknown Room", description: "", id: "" },
 }: {
   room: { name: string; description: string; id: string };
 }) {
@@ -18,6 +18,7 @@ export default function Room({
     await deleteRoom.mutateAsync({ id: room.id });
     await rooms.refetch();
   };
+
   const handleClick = async () => {
     await router.push(`/room/${room.id}`);
   };
