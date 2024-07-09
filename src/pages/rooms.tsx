@@ -18,9 +18,9 @@ export default function Rooms() {
           <div className="mb-5 flex flex-row items-center justify-between">
             <p
               className="text-sm text-blue-800 underline"
-              onClick={() => {
-                router.push("/");
-                signOut();
+              onClick={async () => {
+                await signOut();
+                await router.push("/");
               }}
             >
               Sign out

@@ -16,10 +16,10 @@ export default function Room({
 
   const handleDeleteRoom = async () => {
     await deleteRoom.mutateAsync({ id: room.id });
-    rooms.refetch();
+    await rooms.refetch();
   };
-  const handleClick = () => {
-    router.push(`/room/${room.id}`);
+  const handleClick = async () => {
+    await router.push(`/room/${room.id}`);
   };
 
   return (

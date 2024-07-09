@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 
 const Auth = ({ children }: { children: React.ReactNode }) => {
   const { status } = useSession();
@@ -8,11 +9,9 @@ const Auth = ({ children }: { children: React.ReactNode }) => {
 
   const isRootPath = router.pathname === "/";
 
-  useEffect(() => {
-    if (!isRootPath && status === "unauthenticated") {
-      router.push("/");
-    }
-  }, [status, router, isRootPath]);
+  if (!isRootPath && status === "unauthenticated") {
+    redirect("/");
+  }
 
   if (!isRootPath && status === "loading") {
     return <div>Loading...</div>;

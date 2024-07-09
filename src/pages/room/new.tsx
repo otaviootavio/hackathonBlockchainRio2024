@@ -12,7 +12,7 @@ export default function NewRoom() {
   const session = useSession();
 
   const handleSubmit = async () => {
-    createRoom
+    await createRoom
       .mutateAsync({
         name,
         totalPrice,
@@ -21,8 +21,8 @@ export default function NewRoom() {
         participantPayed: false,
         userId: session.data?.user?.id ?? "",
       })
-      .then((x) => {
-        router.push("/rooms");
+      .then(async () => {
+        await router.push("/rooms");
       });
   };
 

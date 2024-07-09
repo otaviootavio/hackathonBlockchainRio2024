@@ -41,7 +41,7 @@ export default function Onboarding() {
                   <select
                     className="mb-2 block w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
                     onChange={(e) => setInputType(e.target.value)}
-                    value={inputType || ""}
+                    value={inputType ?? ""}
                   >
                     <option value="">Select a Pix Key</option>
                     <option value="phone">Phone Number</option>
