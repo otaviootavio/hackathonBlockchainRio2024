@@ -33,6 +33,7 @@ export const roomRouter = createTRPCRouter({
             name: input.participantName,
             payed: input.participantPayed,
             userId: input.userId,
+            role: "owner",
           },
         });
 
@@ -77,6 +78,7 @@ export const roomRouter = createTRPCRouter({
         name: z.string().optional(),
         description: z.string().optional(),
         totalPrice: z.number().optional(),
+        isOpen: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -86,13 +88,30 @@ export const roomRouter = createTRPCRouter({
           name: input.name,
           description: input.description,
           totalPrice: input.totalPrice,
+          isOpen: input.isOpen,
         },
       });
     }),
 
   deleteRoom: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.string(), userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findUnique({
+        where: { id: input.id },
+        include: {
+          participants: {
+            where: {
+              userId: input.userId,
+              role: "owner",
+            },
+          },
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found or you are not the owner");
+      }
+
       return ctx.db.$transaction(async (prisma) => {
         // Delete all participants associated with the room
         await prisma.participant.deleteMany({
@@ -103,6 +122,56 @@ export const roomRouter = createTRPCRouter({
         return prisma.room.delete({
           where: { id: input.id },
         });
+      });
+    }),
+
+  openRoom: protectedProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findFirst({
+        where: {
+          id: input.id,
+          participants: {
+            some: {
+              userId: input.userId,
+              role: "owner",
+            },
+          },
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found or you are not the owner");
+      }
+
+      return ctx.db.room.update({
+        where: { id: input.id },
+        data: { isOpen: true },
+      });
+    }),
+
+  closeRoom: protectedProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findFirst({
+        where: {
+          id: input.id,
+          participants: {
+            some: {
+              userId: input.userId,
+              role: "owner",
+            },
+          },
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found or you are not the owner");
+      }
+
+      return ctx.db.room.update({
+        where: { id: input.id },
+        data: { isOpen: false },
       });
     }),
 });

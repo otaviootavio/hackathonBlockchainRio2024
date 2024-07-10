@@ -71,18 +71,20 @@ model VerificationToken {
 }
 
 model Room {
-    id          String       @id @default(uuid())
-    name        String
-    description String
-    totalPrice  Int
-    paymentInfo PaymentInfo?
-    participants Participant[]
+  id          String       @id @default(uuid())
+  name        String
+  description String
+  totalPrice  Int
+  isOpen      Boolean      @default(true)
+  paymentInfo PaymentInfo?
+  participants Participant[]
 }
 
 model Participant {
   id      String @id @default(uuid())
   name    String
   payed   Boolean
+  role    String
   roomId  String
   userId  String
   room    Room @relation(fields: [roomId], references: [id])
