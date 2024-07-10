@@ -96,20 +96,25 @@ export const roomRouter = createTRPCRouter({
   deleteRoom: protectedProcedure
     .input(z.object({ id: z.string(), userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      // Find the room and ensure the user is the owner
       const room = await ctx.db.room.findUnique({
         where: { id: input.id },
         include: {
-          participants: {
-            where: {
-              userId: input.userId,
-              role: "owner",
-            },
-          },
+          participants: true,
         },
       });
 
       if (!room) {
-        throw new Error("Room not found or you are not the owner");
+        throw new Error("Room not found");
+      }
+
+      const owner = room.participants.find(
+        (participant) =>
+          participant.userId === input.userId && participant.role === "owner",
+      );
+
+      if (!owner) {
+        throw new Error("You are not the owner of this room");
       }
 
       return ctx.db.$transaction(async (prisma) => {

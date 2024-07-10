@@ -15,7 +15,10 @@ export function Room({
   });
 
   const handleDeleteRoom = async () => {
-    await deleteRoom.mutateAsync({ id: room.id });
+    await deleteRoom.mutateAsync({
+      id: room.id,
+      userId: session.data?.user?.id ?? "",
+    });
     await rooms.refetch();
   };
 

@@ -1,8 +1,15 @@
-export function Participant({
-  participant = { name: "Unknown Participant", payed: false, id: "" },
+export function ParticipantItem({
+  participant,
   removeParticipant,
 }: {
-  participant: { name: string; payed: boolean; id: string };
+  participant: {
+    id: string;
+    name: string;
+    payed: boolean;
+    role: string;
+    roomId: string;
+    userId: string;
+  };
   removeParticipant: (participantId: string) => void;
 }) {
   return (
