@@ -85,7 +85,7 @@ model Participant {
     roomId    String
     userId    String
     room      Room     @relation(fields: [roomId], references: [id])
-    createdAt DateTime @default(now()) // Add this line
+    createdAt DateTime @default(now())
 }
 
 model UserProfile {
