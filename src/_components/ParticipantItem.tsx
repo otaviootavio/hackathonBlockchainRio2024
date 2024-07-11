@@ -38,7 +38,7 @@ export function ParticipantItem({
       id: participant.id,
       payed: !payed,
     });
-    await participantsRefetch();
+    participantsRefetch();
   };
 
   const handleWeightChange = async (newWeight: number) => {
@@ -48,7 +48,7 @@ export function ParticipantItem({
         id: participant.id,
         weight: newWeight,
       });
-      await participantsRefetch();
+      participantsRefetch();
     }
   };
 
