@@ -34,6 +34,7 @@ export const roomRouter = createTRPCRouter({
             payed: input.participantPayed,
             userId: input.userId,
             role: "owner",
+            weight: 1,
           },
         });
 
@@ -47,7 +48,11 @@ export const roomRouter = createTRPCRouter({
       return ctx.db.room.findUnique({
         where: { id: input.id },
         include: {
-          participants: true,
+          participants: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
           paymentInfo: true,
         },
       });

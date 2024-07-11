@@ -5,6 +5,9 @@ export const ParticipantsList = ({
   participants,
   isLoading,
   handleDeleteParticipant,
+  isOwner,
+  totalPrice,
+  participantsRefetch,
 }: {
   participants: {
     id: string;
@@ -13,9 +16,13 @@ export const ParticipantsList = ({
     role: string;
     roomId: string;
     userId: string;
+    weight: number;
   }[];
   isLoading: boolean;
+  participantsRefetch: () => void;
   handleDeleteParticipant: (participantId: string) => void;
+  isOwner: boolean;
+  totalPrice: number;
 }) => {
   return (
     <div className="mt-5 bg-slate-100 p-1">
@@ -26,8 +33,15 @@ export const ParticipantsList = ({
           participants.map((participant) => (
             <div key={participant.id}>
               <ParticipantItem
+                isOwner={isOwner}
                 participant={participant}
                 removeParticipant={handleDeleteParticipant}
+                totalPrice={totalPrice}
+                totalWeight={participants.reduce(
+                  (acc, curr) => acc + curr.weight,
+                  0,
+                )}
+                participantsRefetch={participantsRefetch}
               />
             </div>
           ))

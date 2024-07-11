@@ -118,9 +118,12 @@ export default function Room() {
               <RoomJoin room={room.data} joinRoom={joinRoom} />
             ) : (
               <ParticipantsList
+                participantsRefetch={room.refetch}
+                isOwner={isUserOwner}
                 participants={room.data.participants}
                 isLoading={room.isLoading}
                 handleDeleteParticipant={handleDeleteParticipant}
+                totalPrice={room.data.totalPrice}
               />
             )}
           </>

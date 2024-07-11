@@ -47,6 +47,7 @@ export const participantRouter = createTRPCRouter({
           name: input.name,
           payed: input.payed,
           role: "normal",
+          weight: 1,
         },
       });
     }),
@@ -65,14 +66,42 @@ export const participantRouter = createTRPCRouter({
         id: z.string(),
         name: z.string().optional(),
         payed: z.boolean().optional(),
+        weight: z.number().int().positive().optional(), // Added weight field with validation
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const participant = await ctx.db.participant.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!participant) {
+        throw new Error("Participant not found");
+      }
+
+      const isOwner = await ctx.db.participant.findFirst({
+        where: {
+          roomId: participant.roomId,
+          userId: ctx.session.user.id,
+          role: "owner",
+        },
+      });
+
+      if (ctx.session.user.id !== participant.userId && !isOwner) {
+        throw new Error(
+          "Only the owner or the participant themselves can update the participant's details",
+        );
+      }
+
+      if (input.weight !== undefined && input.weight <= 0) {
+        throw new Error("Weight must be greater than zero");
+      }
+
       return ctx.db.participant.update({
         where: { id: input.id },
         data: {
           name: input.name,
           payed: input.payed,
+          weight: input.weight,
         },
       });
     }),
