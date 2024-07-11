@@ -33,6 +33,8 @@ export const roomRouter = createTRPCRouter({
             name: input.participantName,
             payed: input.participantPayed,
             userId: input.userId,
+            role: "owner",
+            weight: 1,
           },
         });
 
@@ -46,7 +48,11 @@ export const roomRouter = createTRPCRouter({
       return ctx.db.room.findUnique({
         where: { id: input.id },
         include: {
-          participants: true,
+          participants: {
+            orderBy: {
+              createdAt: "asc",
+            },
+          },
           paymentInfo: true,
         },
       });
@@ -77,6 +83,7 @@ export const roomRouter = createTRPCRouter({
         name: z.string().optional(),
         description: z.string().optional(),
         totalPrice: z.number().optional(),
+        isOpen: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -86,13 +93,35 @@ export const roomRouter = createTRPCRouter({
           name: input.name,
           description: input.description,
           totalPrice: input.totalPrice,
+          isOpen: input.isOpen,
         },
       });
     }),
 
   deleteRoom: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.string(), userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      // Find the room and ensure the user is the owner
+      const room = await ctx.db.room.findUnique({
+        where: { id: input.id },
+        include: {
+          participants: true,
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found");
+      }
+
+      const owner = room.participants.find(
+        (participant) =>
+          participant.userId === input.userId && participant.role === "owner",
+      );
+
+      if (!owner) {
+        throw new Error("You are not the owner of this room");
+      }
+
       return ctx.db.$transaction(async (prisma) => {
         // Delete all participants associated with the room
         await prisma.participant.deleteMany({
@@ -103,6 +132,56 @@ export const roomRouter = createTRPCRouter({
         return prisma.room.delete({
           where: { id: input.id },
         });
+      });
+    }),
+
+  openRoom: protectedProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findFirst({
+        where: {
+          id: input.id,
+          participants: {
+            some: {
+              userId: input.userId,
+              role: "owner",
+            },
+          },
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found or you are not the owner");
+      }
+
+      return ctx.db.room.update({
+        where: { id: input.id },
+        data: { isOpen: true },
+      });
+    }),
+
+  closeRoom: protectedProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findFirst({
+        where: {
+          id: input.id,
+          participants: {
+            some: {
+              userId: input.userId,
+              role: "owner",
+            },
+          },
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found or you are not the owner");
+      }
+
+      return ctx.db.room.update({
+        where: { id: input.id },
+        data: { isOpen: false },
       });
     }),
 });
