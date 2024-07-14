@@ -1,5 +1,6 @@
 import React from "react";
 import { RoomOpenAndClose } from "./RoomOpenAndClose";
+import { RoomLeave } from "./RoomLeave";
 
 interface Room {
   name: string;
@@ -15,6 +16,16 @@ interface RoomHeaderProps {
   isUserOwner: boolean;
   handleOpenRoom: () => void;
   handleCloseRoom: () => void;
+  removeParticipant: (participantId: string) => void;
+  userParticipantData: {
+    id: string;
+    name: string;
+    payed: boolean;
+    role: string;
+    roomId: string;
+    userId: string;
+    weight: number;
+  };
 }
 
 export const RoomHeader: React.FC<RoomHeaderProps> = ({
@@ -23,6 +34,8 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
   isUserOwner,
   handleOpenRoom,
   handleCloseRoom,
+  removeParticipant,
+  userParticipantData,
 }) => {
   const owner =
     room?.participants?.find((p) => p.role === "owner")?.name ?? "None";
@@ -39,11 +52,16 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
             Back to rooms
           </p>
           <div>
-            {isUserOwner && (
+            {isUserOwner ? (
               <RoomOpenAndClose
                 isOpen={isOpen}
                 handleOpenRoom={handleOpenRoom}
                 handleCloseRoom={handleCloseRoom}
+              />
+            ) : (
+              <RoomLeave
+                removeParticipant={removeParticipant}
+                userParticipantData={userParticipantData}
               />
             )}
           </div>
