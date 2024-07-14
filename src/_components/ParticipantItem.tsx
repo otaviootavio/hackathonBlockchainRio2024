@@ -32,8 +32,8 @@ export function ParticipantItem({
   const updateParticipant = api.participant.updateParticipant.useMutation();
   const weight = participant.weight;
   const payed = participant.payed;
-  const canUserEditThisParticipantWeight = isUserOwner;
   const isThisParticipantUser = participant.userId === session.data?.user?.id;
+  const canUserEditThisParticipantWeight = isUserOwner || isThisParticipantUser;
   const canRemoveThisParticipant = isUserOwner && !isThisParticipantUser;
   const canUserSetPayed = isUserOwner || isThisParticipantUser;
 
