@@ -66,7 +66,7 @@ export const participantRouter = createTRPCRouter({
         id: z.string(),
         name: z.string().optional(),
         payed: z.boolean().optional(),
-        weight: z.number().int().positive().optional(), // Added weight field with validation
+        weight: z.number().int().positive().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -110,27 +110,16 @@ export const participantRouter = createTRPCRouter({
     .input(z.object({ id: z.string(), userId: z.string(), roomId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const participant = await ctx.db.participant.findFirst({
-        where: {
-          id: input.id,
-          OR: [
-            { userId: input.userId },
-            {
-              room: {
-                participants: {
-                  some: {
-                    userId: ctx.session.user.id,
-                    role: "owner",
-                  },
-                },
-              },
-            },
-          ],
-        },
+        where: { id: input.id },
       });
 
       if (!participant) {
+        throw new Error("Participant not found");
+      }
+
+      if (participant.role === "owner") {
         throw new Error(
-          "You do not have permission to delete this participant",
+          "Owner cannot leave the room. Please delete the room instead.",
         );
       }
 
@@ -149,28 +138,16 @@ export const participantRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const participant = await ctx.db.participant.findFirst({
-        where: {
-          id: input.participantId,
-          roomId: input.roomId,
-          OR: [
-            { userId: input.userId },
-            {
-              room: {
-                participants: {
-                  some: {
-                    userId: ctx.session.user.id,
-                    role: "owner",
-                  },
-                },
-              },
-            },
-          ],
-        },
+        where: { id: input.participantId, roomId: input.roomId },
       });
 
       if (!participant) {
+        throw new Error("Participant not found");
+      }
+
+      if (participant.role === "owner") {
         throw new Error(
-          "You do not have permission to remove this participant",
+          "Owner cannot leave the room. Please delete the room instead.",
         );
       }
 

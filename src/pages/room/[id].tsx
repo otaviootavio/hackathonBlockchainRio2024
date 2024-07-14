@@ -102,31 +102,39 @@ export default function Room() {
     await room.refetch();
   };
 
+  const userParticipantData = room.data.participants.find(
+    (p) => p.userId === session.data?.user?.id,
+  );
+
+  if (!isUserParticipant) {
+    return <RoomJoin room={room.data} joinRoom={joinRoom} />;
+  }
+
+  if (!userParticipantData) {
+    return <div>Error loading participant data</div>;
+  }
+
   return (
     <div className="flex h-screen flex-col items-center bg-blue-200">
       <div className="min-w-96">
         <div className="rounded-lg border-2 bg-white p-4">
-          <>
-            <RoomHeader
-              room={room.data}
-              onBack={() => router.push("/rooms")}
-              isUserOwner={isUserOwner}
-              handleOpenRoom={handleOpenRoom}
-              handleCloseRoom={handleCloseRoom}
-            />
-            {!isUserParticipant ? (
-              <RoomJoin room={room.data} joinRoom={joinRoom} />
-            ) : (
-              <ParticipantsList
-                participantsRefetch={room.refetch}
-                isOwner={isUserOwner}
-                participants={room.data.participants}
-                isLoading={room.isLoading}
-                handleDeleteParticipant={handleDeleteParticipant}
-                totalPrice={room.data.totalPrice}
-              />
-            )}
-          </>
+          <RoomHeader
+            room={room.data}
+            onBack={() => router.push("/rooms")}
+            isUserOwner={isUserOwner}
+            userParticipantData={userParticipantData}
+            handleOpenRoom={handleOpenRoom}
+            handleCloseRoom={handleCloseRoom}
+            removeParticipant={handleDeleteParticipant}
+          />
+          <ParticipantsList
+            participantsRefetch={room.refetch}
+            isUserOwner={isUserOwner}
+            participants={room.data.participants}
+            isLoading={room.isLoading}
+            handleDeleteParticipant={handleDeleteParticipant}
+            totalPrice={room.data.totalPrice}
+          />
         </div>
       </div>
     </div>

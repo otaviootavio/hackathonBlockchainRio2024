@@ -5,7 +5,7 @@ export const ParticipantsList = ({
   participants,
   isLoading,
   handleDeleteParticipant,
-  isOwner,
+  isUserOwner,
   totalPrice,
   participantsRefetch,
 }: {
@@ -21,7 +21,7 @@ export const ParticipantsList = ({
   isLoading: boolean;
   participantsRefetch: () => void;
   handleDeleteParticipant: (participantId: string) => void;
-  isOwner: boolean;
+  isUserOwner: boolean;
   totalPrice: number;
 }) => {
   return (
@@ -33,7 +33,7 @@ export const ParticipantsList = ({
           participants.map((participant) => (
             <div key={participant.id}>
               <ParticipantItem
-                isOwner={isOwner}
+                isUserOwner={isUserOwner}
                 participant={participant}
                 removeParticipant={handleDeleteParticipant}
                 totalPrice={totalPrice}
