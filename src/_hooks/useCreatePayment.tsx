@@ -2,7 +2,7 @@ import { useState } from "react";
 import { api } from "~/utils/api";
 
 export const useCreatePayment = () => {
-  const mutation = api.wallet.createPaymentRequest.useMutation();
+  const mutation = api.xaman.createPaymentRequest.useMutation();
   const [error, setError] = useState<string | null>(null);
   const [res, setRes] = useState<typeof mutation.data>();
   const [loading, setLoading] = useState(false);

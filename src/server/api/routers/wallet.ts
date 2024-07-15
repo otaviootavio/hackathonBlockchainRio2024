@@ -7,7 +7,7 @@ import { env } from "~/env";
 const XUMM_API_KEY = env.XUMM_API_KEY;
 const XUMM_API_SECRET = env.XUMM_API_SECRET;
 
-export const walletRouter = createTRPCRouter({
+export const xamanRouter = createTRPCRouter({
   // Procedure to create a payment request
   createPaymentRequest: protectedProcedure
     .input(

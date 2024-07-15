@@ -4,7 +4,7 @@ import { paymentInfoRouter } from "./routers/paymentInfo";
 import { userProfileRouter } from "./routers/profile";
 import { participantRouter } from "./routers/participant";
 import { roomRouter } from "./routers/room";
-import { walletRouter } from "./routers/wallet";
+import { xamanRouter } from "./routers/wallet";
 
 /**
  * This is the primary router for your server.
@@ -12,7 +12,7 @@ import { walletRouter } from "./routers/wallet";
  * All routers added in /api/routers should be manually added here.
  */
 export const appRouter = createTRPCRouter({
-  wallet: walletRouter,
+  xaman: xamanRouter,
   post: postRouter,
   room: roomRouter,
   participant: participantRouter,
