@@ -52,7 +52,7 @@ const CreatePayment: React.FC = () => {
             <strong>Next:</strong> {res.next}
           </p>
           <p>
-            <strong>QR Code URL:</strong>{" "}
+            <strong>QR Code URL:</strong>
             <a href={res.qrCodeUrl} target="_blank" rel="noreferrer">
               {res.qrCodeUrl}
             </a>

@@ -7,6 +7,28 @@ import { env } from "~/env";
 const XUMM_API_KEY = env.XUMM_API_KEY;
 const XUMM_API_SECRET = env.XUMM_API_SECRET;
 
+// Define the schema for the payment request response
+const paymentRequestResponseSchema = z.object({
+  uuid: z.string(),
+  next: z.object({
+    always: z.string(),
+  }),
+  refs: z.object({
+    qr_png: z.string(),
+  }),
+});
+
+// Define the schema for the payment status response
+const paymentStatusResponseSchema = z.object({
+  response: z.object({
+    txid: z.string().or(z.null()),
+    resolved_at: z.string().or(z.null()),
+    dispatched_result: z.string().or(z.null()),
+    dispatched_to_node: z.boolean().or(z.null()),
+    environment_networkid: z.number().or(z.undefined()),
+  }),
+});
+
 export const xamanRouter = createTRPCRouter({
   // Procedure to create a payment request
   createPaymentRequest: protectedProcedure
@@ -18,7 +40,7 @@ export const xamanRouter = createTRPCRouter({
         memo: z.string().optional(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
+    .mutation(async ({ input }) => {
       const url = "https://xumm.app/api/v1/platform/payload";
       const payload = {
         txjson: {
@@ -52,11 +74,14 @@ export const xamanRouter = createTRPCRouter({
 
       try {
         const response = await axios(url, options);
-        const json = response.data;
+        const parsedResponse = paymentRequestResponseSchema.parse(
+          response.data,
+        );
+
         return {
-          uuid: json.uuid,
-          next: json.next.always,
-          qrCodeUrl: json.refs.qr_png,
+          uuid: parsedResponse.uuid,
+          next: parsedResponse.next.always,
+          qrCodeUrl: parsedResponse.refs.qr_png,
         };
       } catch (e) {
         if (e instanceof Error) {
@@ -78,7 +103,7 @@ export const xamanRouter = createTRPCRouter({
   // Procedure to get the status of a payment request
   getPaymentStatus: protectedProcedure
     .input(z.object({ uuid: z.string() }))
-    .query(async ({ ctx, input }) => {
+    .query(async ({ input }) => {
       const url = `https://xumm.app/api/v1/platform/payload/${input.uuid}`;
 
       const options = {
@@ -93,27 +118,16 @@ export const xamanRouter = createTRPCRouter({
 
       try {
         const response = await axios(url, options);
-        const json = response.data.response;
+        console.log(response.data);
+        const parsedResponse = paymentStatusResponseSchema.parse(response.data);
 
-        console.log(json);
         return {
-          // hex: json.hex,
-          txid: json.txid as string,
-          resolved_at: json.resolved_at as string,
-          // dispatched_to: json.dispatched_to,
-          // dispatched_nodetype: json.dispatched_nodetype,
-          dispatched_result: json.dispatched_result as string,
-          dispatched_to_node: json.dispatched_to_node,
-          // environment_nodeuri: json.environment_nodeuri,
-          // environment_nodetype: json.environment_nodetype,
-          // multisign_account: json.multisign_account,
-          // account: json.account,
-          // signer: json.signer,
-          // user: json.user,
-          environment_networkid: json.environment_networkid as string,
+          txid: parsedResponse.response.txid,
+          resolved_at: parsedResponse.response.resolved_at,
+          dispatched_result: parsedResponse.response.dispatched_result,
+          dispatched_to_node: parsedResponse.response.dispatched_to_node,
+          environment_networkid: parsedResponse.response.environment_networkid,
         };
-
-        // return json;
       } catch (e) {
         if (e instanceof Error) {
           throw new TRPCError({

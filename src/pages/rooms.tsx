@@ -7,6 +7,8 @@ import {
 } from "next-auth/react";
 import { api } from "~/utils/api";
 import { Room } from "../_components/Room";
+import Link from "next/link";
+import { db } from "~/server/db";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -22,6 +24,19 @@ export async function getServerSideProps(
     };
   }
 
+  const userProfile = await db.userProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!userProfile) {
+    return {
+      redirect: {
+        destination: "/profile",
+        permanent: false,
+      },
+    };
+  }
+
   return {
     props: { session },
   };
@@ -32,6 +47,10 @@ export default function Rooms() {
   const session = useSession();
 
   const rooms = api.room.getRoomsByUserIdInEachRoom.useQuery({
+    userId: session.data?.user?.id ?? "",
+  });
+
+  const userProfile = api.userProfile.getUserProfileByUserId.useQuery({
     userId: session.data?.user?.id ?? "",
   });
 
@@ -51,8 +70,13 @@ export default function Rooms() {
             </p>
           </div>
           <div className="mb-5 flex flex-row items-center justify-between">
-            <p className="text-sm">{JSON.stringify(session.data?.user.name)}</p>
+            <p className="text-sm">Welcome back {userProfile.data?.name}!</p>
+            {/* Edti user profile */}
+            <Link className="text-sm text-blue-800 underline" href="/profile">
+              Edit Profile
+            </Link>
           </div>
+
           <div className="flex flex-row justify-between">
             <div>
               <h2 className="text-2xl font-bold">My Rooms</h2>

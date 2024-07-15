@@ -13,6 +13,7 @@ export const participantRouter = createTRPCRouter({
         userId: z.string(),
         name: z.string().min(1),
         payed: z.boolean(),
+        userProfileId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -42,9 +43,9 @@ export const participantRouter = createTRPCRouter({
 
       return ctx.db.participant.create({
         data: {
+          userProfileId: input.userProfileId,
           roomId: input.roomId,
           userId: input.userId,
-          name: input.name,
           payed: input.payed,
           role: "normal",
           weight: 1,
@@ -99,7 +100,6 @@ export const participantRouter = createTRPCRouter({
       return ctx.db.participant.update({
         where: { id: input.id },
         data: {
-          name: input.name,
           payed: input.payed,
           weight: input.weight,
         },

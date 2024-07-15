@@ -48,14 +48,15 @@ model Session {
 }
 
 model User {
-    id            String    @id @default(cuid())
+    id            String       @id @default(cuid())
     name          String?
-    email         String?   @unique
+    email         String?      @unique
     emailVerified DateTime?
     image         String?
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    userProfile   UserProfile?
 }
 
 model VerificationToken {
@@ -72,35 +73,27 @@ model Room {
     description  String
     totalPrice   Int
     isOpen       Boolean       @default(true)
-    paymentInfo  PaymentInfo?
     participants Participant[]
 }
 
 model Participant {
-    id        String   @id @default(uuid())
-    name      String
-    payed     Boolean
-    role      String
-    weight    Int
-    roomId    String
-    userId    String
-    room      Room     @relation(fields: [roomId], references: [id])
-    createdAt DateTime @default(now())
+    id            String      @id @default(uuid())
+    payed         Boolean
+    role          String
+    weight        Int
+    roomId        String
+    userId        String
+    room          Room        @relation(fields: [roomId], references: [id])
+    createdAt     DateTime    @default(now())
+    userProfileId String
+    userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
 }
 
 model UserProfile {
-    id     String @id @default(cuid())
-    name   String
-    wallet String
-    pix    String
-}
-
-model PaymentInfo {
-    id         String @id @default(uuid())
-    payTo      String
-    type       String
-    inputType  String
-    inputValue String
-    roomId     String @unique
-    room       Room   @relation(fields: [roomId], references: [id])
+    id          String        @id @default(cuid())
+    name        String
+    wallet      String
+    userId      String        @unique
+    user        User          @relation(fields: [userId], references: [id])
+    Participant Participant[]
 }

@@ -6,6 +6,7 @@ import { type GetSessionParams, getSession } from "next-auth/react";
 import { RoomHeader } from "~/_components/RoomHeader";
 import { ParticipantsList } from "~/_components/ParticipantsList";
 import { RoomJoin } from "~/_components/RoomJoin";
+import { db } from "~/server/db";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -16,6 +17,19 @@ export async function getServerSideProps(
     return {
       redirect: {
         destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
+  const userProfile = await db.userProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!userProfile) {
+    return {
+      redirect: {
+        destination: "/profile",
         permanent: false,
       },
     };
@@ -37,14 +51,22 @@ export default function Room() {
     api.participant.removeParticipantFromRoom.useMutation();
   const openRoom = api.room.openRoom.useMutation();
   const closeRoom = api.room.closeRoom.useMutation();
+  const { data: userProfile } = api.userProfile.getUserProfileByUserId.useQuery(
+    {
+      userId: session.data?.user?.id ?? "",
+    },
+  );
 
   const isUserOwner =
     room.data?.participants?.some(
-      (p) => p.role === "owner" && p.userId === session.data?.user?.id,
+      (p: { role: string; userId: string }) =>
+        p.role === "owner" && p.userId === session.data?.user.id,
     ) ?? false;
   const isUserParticipant =
-    room.data?.participants.some((p) => p.userId === session.data?.user?.id) ??
-    false;
+    room.data?.participants.some(
+      (p: { userId: string | undefined }) =>
+        p.userId === session.data?.user?.id,
+    ) ?? false;
 
   if (room.isLoading) {
     return (
@@ -68,7 +90,8 @@ export default function Room() {
 
   const joinRoom = async () => {
     await addParticipant.mutateAsync({
-      roomId,
+      roomId: roomId,
+      userProfileId: userProfile?.id ?? "",
       userId: session.data?.user?.id ?? "",
       name: session.data.user?.name ?? "",
       payed: false,
@@ -103,7 +126,7 @@ export default function Room() {
   };
 
   const userParticipantData = room.data.participants.find(
-    (p) => p.userId === session.data?.user?.id,
+    (p: { userId: string }) => p.userId === session.data?.user?.id,
   );
 
   if (!isUserParticipant) {

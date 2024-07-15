@@ -10,8 +10,9 @@ export const ParticipantsList = ({
   participantsRefetch,
 }: {
   participants: {
-    id: string;
     name: string;
+    wallet: string;
+    userParticipantId: string;
     payed: boolean;
     role: string;
     roomId: string;
@@ -31,7 +32,7 @@ export const ParticipantsList = ({
           <div>Loading...</div>
         ) : participants?.length ? (
           participants.map((participant) => (
-            <div key={participant.id}>
+            <div key={participant.userParticipantId}>
               <ParticipantItem
                 isUserOwner={isUserOwner}
                 participant={participant}

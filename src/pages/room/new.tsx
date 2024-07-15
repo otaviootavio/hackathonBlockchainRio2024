@@ -1,6 +1,7 @@
 import { type GetSessionParams, getSession, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { db } from "~/server/db";
 import { api } from "~/utils/api";
 
 export async function getServerSideProps(
@@ -12,6 +13,19 @@ export async function getServerSideProps(
     return {
       redirect: {
         destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
+  const userProfile = await db.userProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!userProfile) {
+    return {
+      redirect: {
+        destination: "/profile",
         permanent: false,
       },
     };
@@ -29,16 +43,19 @@ export default function NewRoom() {
   const createRoom = api.room.createRoom.useMutation();
   const router = useRouter();
   const session = useSession();
-
+  const userProfile = api.userProfile.getUserProfileByUserId.useQuery({
+    userId: session.data?.user?.id ?? "",
+  });
   const handleSubmit = async () => {
     await createRoom
       .mutateAsync({
         name,
         totalPrice,
         description,
-        participantName: session.data?.user?.name ?? "",
+        participantName: userProfile.data?.name ?? "",
         participantPayed: false,
         userId: session.data?.user?.id ?? "",
+        userProfileId: userProfile.data?.id ?? "",
       })
       .then(async () => {
         await router.push("/rooms");
@@ -68,7 +85,7 @@ export default function NewRoom() {
             </div>
             <div>
               <label htmlFor="roomPrice" className="block text-gray-700">
-                Room Price (in ETH)
+                Room Price (in XRP)
               </label>
               <input
                 onChange={(e) => setTotalPrice(Number(e.target.value))}

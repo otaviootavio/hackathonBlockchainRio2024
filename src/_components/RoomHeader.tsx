@@ -18,13 +18,14 @@ interface RoomHeaderProps {
   handleCloseRoom: () => void;
   removeParticipant: (participantId: string) => void;
   userParticipantData: {
-    id: string;
-    name: string;
     payed: boolean;
     role: string;
     roomId: string;
     userId: string;
     weight: number;
+    name: string;
+    wallet: string;
+    userParticipantId: string;
   };
 }
 
@@ -69,10 +70,10 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 
         <div className="mt-4 flex flex-row justify-between">
           <div>
-            <h2 className="text-2xl font-bold">{room?.name}</h2>
-            <p className="text-lg text-gray-700">{room?.description}</p>
+            <h2 className="text-2xl font-bold">{room.name}</h2>
+            <p className="text-lg text-gray-700">{room.description}</p>
             <p
-              className={`text-sm font-semibold ${room?.isOpen ? "text-green-600" : "text-red-600"}`}
+              className={`text-sm font-semibold ${room.isOpen ? "text-green-600" : "text-red-600"}`}
             ></p>
             <div className="mt-2 flex flex-row items-center gap-2">
               <div className="text-sm font-medium">Owner:</div>

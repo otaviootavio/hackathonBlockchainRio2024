@@ -15,6 +15,7 @@ export const roomRouter = createTRPCRouter({
         participantName: z.string().min(1),
         participantPayed: z.boolean(),
         userId: z.string(),
+        userProfileId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -30,9 +31,9 @@ export const roomRouter = createTRPCRouter({
         await prisma.participant.create({
           data: {
             roomId: room.id,
-            name: input.participantName,
             payed: input.participantPayed,
             userId: input.userId,
+            userProfileId: input.userProfileId,
             role: "owner",
             weight: 1,
           },
@@ -45,17 +46,45 @@ export const roomRouter = createTRPCRouter({
   getRoomById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db.room.findUnique({
+      const data = await ctx.db.room.findUnique({
         where: { id: input.id },
         include: {
           participants: {
             orderBy: {
               createdAt: "asc",
             },
+            include: {
+              userProfile: true,
+            },
           },
-          paymentInfo: true,
         },
       });
+
+      if (!data) {
+        throw new Error("Room not found");
+      }
+
+      const participants = data.participants.map((p) => ({
+        name: p.userProfile.name,
+        wallet: p.userProfile.wallet,
+        payed: p.payed,
+        role: p.role,
+        weight: p.weight,
+        roomId: p.roomId,
+        userId: p.userId,
+        createdAt: p.createdAt,
+        userParticipantId: p.id,
+      }));
+
+      const room = {
+        id: data.id,
+        name: data.name,
+        description: data.description,
+        totalPrice: data.totalPrice,
+        isOpen: data.isOpen,
+      };
+
+      return { ...room, participants };
     }),
 
   getAllRooms: publicProcedure.query(async ({ ctx }) => {

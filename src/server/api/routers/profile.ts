@@ -11,7 +11,7 @@ export const userProfileRouter = createTRPCRouter({
       z.object({
         name: z.string().min(1),
         wallet: z.string().min(1),
-        pix: z.string().min(1),
+        userId: z.string().min(1),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -19,7 +19,7 @@ export const userProfileRouter = createTRPCRouter({
         data: {
           name: input.name,
           wallet: input.wallet,
-          pix: input.pix,
+          userId: input.userId,
         },
       });
     }),
@@ -32,13 +32,20 @@ export const userProfileRouter = createTRPCRouter({
       });
     }),
 
+  getUserProfileByUserId: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      return ctx.db.userProfile.findUnique({
+        where: { userId: input.userId },
+      });
+    }),
+
   updateUserProfile: protectedProcedure
     .input(
       z.object({
         id: z.string(),
         name: z.string().optional(),
         wallet: z.string().optional(),
-        pix: z.string().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -47,7 +54,6 @@ export const userProfileRouter = createTRPCRouter({
         data: {
           name: input.name,
           wallet: input.wallet,
-          pix: input.pix,
         },
       });
     }),
