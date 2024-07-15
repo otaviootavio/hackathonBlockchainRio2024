@@ -7,7 +7,16 @@ interface Room {
   description: string;
   isOpen: boolean;
   totalPrice: number;
-  participants: { role: string; name: string }[];
+  participants: {
+    payed: boolean;
+    role: string;
+    roomId: string;
+    userId: string;
+    weight: number;
+    name: string;
+    wallet: string;
+    userParticipantId: string;
+  }[];
 }
 
 interface RoomHeaderProps {
@@ -18,13 +27,14 @@ interface RoomHeaderProps {
   handleCloseRoom: () => void;
   removeParticipant: (participantId: string) => void;
   userParticipantData: {
-    id: string;
-    name: string;
     payed: boolean;
     role: string;
     roomId: string;
     userId: string;
     weight: number;
+    name: string;
+    wallet: string;
+    userParticipantId: string;
   };
 }
 
@@ -37,8 +47,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
   removeParticipant,
   userParticipantData,
 }) => {
-  const owner =
-    room?.participants?.find((p) => p.role === "owner")?.name ?? "None";
+  const owner = room?.participants?.find((p) => p.role === "owner");
   const isOpen = room?.isOpen ?? false;
 
   return (
@@ -69,18 +78,22 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 
         <div className="mt-4 flex flex-row justify-between">
           <div>
-            <h2 className="text-2xl font-bold">{room?.name}</h2>
-            <p className="text-lg text-gray-700">{room?.description}</p>
+            <h2 className="text-2xl font-bold">{room.name}</h2>
+            <p className="text-lg text-gray-700">{room.description}</p>
             <p
-              className={`text-sm font-semibold ${room?.isOpen ? "text-green-600" : "text-red-600"}`}
+              className={`text-sm font-semibold ${room.isOpen ? "text-green-600" : "text-red-600"}`}
             ></p>
             <div className="mt-2 flex flex-row items-center gap-2">
               <div className="text-sm font-medium">Owner:</div>
-              <div className="text-sm">{owner}</div>
+              <div className="text-sm">{owner?.name}</div>
+            </div>
+            <div className="mt-2 flex flex-row items-center gap-2">
+              <div className="text-sm font-medium">Address:</div>
+              <div className="text-sm">{owner?.wallet}</div>
             </div>
           </div>
           <p className="flex flex-col justify-center text-lg font-semibold text-blue-900">
-            {room?.totalPrice} ETH
+            {room?.totalPrice} XRP
           </p>
         </div>
       </div>

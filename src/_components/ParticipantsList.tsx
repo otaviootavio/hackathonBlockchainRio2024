@@ -8,22 +8,36 @@ export const ParticipantsList = ({
   isUserOwner,
   totalPrice,
   participantsRefetch,
+  room,
 }: {
   participants: {
-    id: string;
     name: string;
+    wallet: string;
+    userParticipantId: string;
     payed: boolean;
     role: string;
     roomId: string;
     userId: string;
     weight: number;
   }[];
+  room: {
+    isOpen: boolean;
+    isReadyForSettlement: boolean;
+    hasSettled: boolean;
+    id: string;
+    totalPrice: number;
+  };
   isLoading: boolean;
   participantsRefetch: () => void;
   handleDeleteParticipant: (participantId: string) => void;
   isUserOwner: boolean;
   totalPrice: number;
 }) => {
+  const ownerAddress =
+    participants.find(
+      (p: { role: string; wallet: string }) => p.role === "owner",
+    )?.wallet ?? "";
+
   return (
     <div className="mt-5 bg-slate-100 p-1">
       <div className="flex flex-col gap-1">
@@ -31,8 +45,10 @@ export const ParticipantsList = ({
           <div>Loading...</div>
         ) : participants?.length ? (
           participants.map((participant) => (
-            <div key={participant.id}>
+            <div key={participant.userParticipantId}>
               <ParticipantItem
+                ownerAddress={ownerAddress}
+                room={room}
                 isUserOwner={isUserOwner}
                 participant={participant}
                 removeParticipant={handleDeleteParticipant}

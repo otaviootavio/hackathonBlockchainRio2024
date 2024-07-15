@@ -4,17 +4,16 @@ export const RoomLeave = ({
 }: {
   removeParticipant: (participantId: string) => void;
   userParticipantData: {
-    id: string;
-    name: string;
     payed: boolean;
     role: string;
     roomId: string;
     userId: string;
     weight: number;
+    userParticipantId: string;
   };
 }) => {
   const handleLeaveRoom = async () => {
-    removeParticipant(userParticipantData.id);
+    removeParticipant(userParticipantData.userParticipantId);
   };
 
   return (

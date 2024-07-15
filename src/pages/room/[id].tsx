@@ -6,6 +6,8 @@ import { type GetSessionParams, getSession } from "next-auth/react";
 import { RoomHeader } from "~/_components/RoomHeader";
 import { ParticipantsList } from "~/_components/ParticipantsList";
 import { RoomJoin } from "~/_components/RoomJoin";
+import { db } from "~/server/db";
+import RoomStatus from "~/_components/RoomStatus";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -21,6 +23,19 @@ export async function getServerSideProps(
     };
   }
 
+  const userProfile = await db.userProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!userProfile) {
+    return {
+      redirect: {
+        destination: "/profile",
+        permanent: false,
+      },
+    };
+  }
+
   return {
     props: { session },
   };
@@ -31,20 +46,50 @@ export default function Room() {
   const roomId = router.query.id as string;
   const room = api.room.getRoomById.useQuery({ id: roomId });
   const session = useSession();
-
+  const hasEveryonePayed =
+    room.data?.participants.every((p: { payed: boolean }) => p.payed) ?? false;
   const addParticipant = api.participant.addParticipant.useMutation();
   const removeParticipantFromRoom =
     api.participant.removeParticipantFromRoom.useMutation();
   const openRoom = api.room.openRoom.useMutation();
   const closeRoom = api.room.closeRoom.useMutation();
+  const { data: userProfile } = api.userProfile.getUserProfileByUserId.useQuery(
+    {
+      userId: session.data?.user?.id ?? "",
+    },
+  );
+
+  const setreadyForSettlement = api.room.setReadyForSettlement.useMutation();
+  const settleRoom = api.room.settleRoom.useMutation();
+
+  const handleSetReadyForSettlement = async () => {
+    await setreadyForSettlement.mutateAsync({
+      id: roomId,
+      userId: session.data?.user?.id ?? "",
+    });
+    await room.refetch();
+  };
+
+  const handleSetteleRoom = async () => {
+    if (hasEveryonePayed) {
+      await settleRoom.mutateAsync({
+        id: roomId,
+        userId: session.data?.user?.id ?? "",
+      });
+      await room.refetch();
+    }
+  };
 
   const isUserOwner =
     room.data?.participants?.some(
-      (p) => p.role === "owner" && p.userId === session.data?.user?.id,
+      (p: { role: string; userId: string }) =>
+        p.role === "owner" && p.userId === session.data?.user.id,
     ) ?? false;
   const isUserParticipant =
-    room.data?.participants.some((p) => p.userId === session.data?.user?.id) ??
-    false;
+    room.data?.participants.some(
+      (p: { userId: string | undefined }) =>
+        p.userId === session.data?.user?.id,
+    ) ?? false;
 
   if (room.isLoading) {
     return (
@@ -68,7 +113,8 @@ export default function Room() {
 
   const joinRoom = async () => {
     await addParticipant.mutateAsync({
-      roomId,
+      roomId: roomId,
+      userProfileId: userProfile?.id ?? "",
       userId: session.data?.user?.id ?? "",
       name: session.data.user?.name ?? "",
       payed: false,
@@ -103,11 +149,19 @@ export default function Room() {
   };
 
   const userParticipantData = room.data.participants.find(
-    (p) => p.userId === session.data?.user?.id,
+    (p: { userId: string }) => p.userId === session.data?.user?.id,
   );
 
   if (!isUserParticipant) {
-    return <RoomJoin room={room.data} joinRoom={joinRoom} />;
+    return (
+      <div className="flex h-screen flex-col items-center bg-blue-200">
+        <div className="min-w-96">
+          <div className="rounded-lg border-2 bg-white p-4">
+            <RoomJoin room={room.data} joinRoom={joinRoom} />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!userParticipantData) {
@@ -118,6 +172,13 @@ export default function Room() {
     <div className="flex h-screen flex-col items-center bg-blue-200">
       <div className="min-w-96">
         <div className="rounded-lg border-2 bg-white p-4">
+          <RoomStatus
+            isUserOwner={isUserOwner}
+            room={room.data}
+            handleSettleRoom={handleSetteleRoom}
+            handleSetReadyForSettlement={handleSetReadyForSettlement}
+            hasEveryonePayed={hasEveryonePayed}
+          />
           <RoomHeader
             room={room.data}
             onBack={() => router.push("/rooms")}
@@ -128,6 +189,7 @@ export default function Room() {
             removeParticipant={handleDeleteParticipant}
           />
           <ParticipantsList
+            room={room.data}
             participantsRefetch={room.refetch}
             isUserOwner={isUserOwner}
             participants={room.data.participants}
