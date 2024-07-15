@@ -3,13 +3,22 @@ import { useCreatePayment } from "../_hooks/useCreatePayment";
 import Link from "next/link";
 
 const CreatePayment: React.FC = () => {
-  const { createPayment, error, loading, res } = useCreatePayment();
+  const { createPayment, error, loading } = useCreatePayment();
   const [amount, setAmount] = useState("");
   const [destination, setDestination] = useState("");
+  const [res, setRes] = useState<
+    | {
+        uuid: string;
+        next: string;
+        qrCodeUrl: string;
+      }
+    | undefined
+  >();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createPayment(amount, destination);
+    const res = await createPayment(amount, destination);
+    setRes(res);
   };
 
   return (

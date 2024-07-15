@@ -36,7 +36,7 @@ export const ParticipantsList = ({
   const ownerAddress =
     participants.find(
       (p: { role: string; wallet: string }) => p.role === "owner",
-    )?.wallet || "";
+    )?.wallet ?? "";
 
   return (
     <div className="mt-5 bg-slate-100 p-1">

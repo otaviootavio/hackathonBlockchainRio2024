@@ -1,4 +1,4 @@
-import React, { use, useState } from "react";
+import React, { useState } from "react";
 import { useCreatePayment } from "../_hooks/useCreatePayment";
 import Link from "next/link";
 import { api } from "~/utils/api";
@@ -12,7 +12,7 @@ const PayAmountToAddress = ({
   amount: string;
   address: string;
 }) => {
-  const { createPayment, error, loading } = useCreatePayment();
+  const { createPayment } = useCreatePayment();
   const router = useRouter();
   const roomId = router.query.id as string;
   const createWebhookEvent = api.xaman.createWebhookEvent.useMutation();
