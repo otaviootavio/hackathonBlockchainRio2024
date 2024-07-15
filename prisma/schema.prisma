@@ -111,6 +111,7 @@ model WebhookEvent {
     txid        String? // Nullable because rejected transactions won't have a txid
     status      String   @default("pending") // New field for tracking status
     userId      String? // Nullable, as we might not always have userId initially
+    roomId      String? // Nullable, as we might not always have roomId initially
     createdAt   DateTime @default(now())
     updatedAt   DateTime @updatedAt
 }

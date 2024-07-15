@@ -66,6 +66,26 @@ export default async function handler(
       },
     });
 
+    if (!updatedWebhookEvent) {
+      return res.status(404).json({ error: "Webhook event not found." });
+    }
+
+    if (!updatedWebhookEvent.userId) {
+      return res.status(404).json({ error: "User  not found." });
+    }
+
+    if (!updatedWebhookEvent.roomId) {
+      return res.status(404).json({ error: "Room not found." });
+    }
+
+    await db.participant.updateMany({
+      where: {
+        userId: updatedWebhookEvent.userId,
+        roomId: updatedWebhookEvent.roomId,
+      },
+      data: { payed: true },
+    });
+
     return res.status(200).json({ status: "success", updatedWebhookEvent });
   } catch (e) {
     console.error("Failed to handle webhook:", e);

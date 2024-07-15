@@ -155,6 +155,7 @@ export const xamanRouter = createTRPCRouter({
         payloadId: z.string(),
         referenceId: z.string(),
         userId: z.string(),
+        roomId: z.string(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -163,6 +164,7 @@ export const xamanRouter = createTRPCRouter({
           data: {
             payloadId: input.payloadId,
             referenceId: input.referenceId,
+            roomId: input.roomId,
             userId: input.userId,
             status: "pending",
           },
@@ -182,6 +184,7 @@ export const xamanRouter = createTRPCRouter({
     .input(
       z.object({
         userId: z.string(),
+        roomId: z.string(),
       }),
     )
     .query(async ({ input }) => {
@@ -189,6 +192,7 @@ export const xamanRouter = createTRPCRouter({
         const successfulWebhookEvents = await db.webhookEvent.findMany({
           where: {
             userId: input.userId,
+            roomId: input.roomId,
             status: "signed",
           },
         });

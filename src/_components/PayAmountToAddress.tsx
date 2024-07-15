@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { useCreatePayment } from "../_hooks/useCreatePayment";
 import Link from "next/link";
 import { api } from "~/utils/api";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 const PayAmountToAddress = ({
   amount,
@@ -12,6 +13,8 @@ const PayAmountToAddress = ({
   address: string;
 }) => {
   const { createPayment, error, loading } = useCreatePayment();
+  const router = useRouter();
+  const roomId = router.query.id as string;
   const createWebhookEvent = api.xaman.createWebhookEvent.useMutation();
   const session = useSession();
   const [res, setRes] = useState<
@@ -33,6 +36,7 @@ const PayAmountToAddress = ({
       payloadId: res?.uuid ?? "",
       referenceId: res?.uuid ?? "",
       userId: session.data?.user?.id ?? "",
+      roomId: roomId,
     });
     setRes(res);
   };
