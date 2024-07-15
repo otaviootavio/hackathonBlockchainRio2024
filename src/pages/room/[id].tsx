@@ -153,7 +153,15 @@ export default function Room() {
   );
 
   if (!isUserParticipant) {
-    return <RoomJoin room={room.data} joinRoom={joinRoom} />;
+    return (
+      <div className="flex h-screen flex-col items-center bg-blue-200">
+        <div className="min-w-96">
+          <div className="rounded-lg border-2 bg-white p-4">
+            <RoomJoin room={room.data} joinRoom={joinRoom} />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!userParticipantData) {

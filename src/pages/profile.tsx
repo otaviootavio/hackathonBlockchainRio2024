@@ -4,6 +4,7 @@ import UserProfile from "~/_components/UserProfile";
 import { getSession, type GetSessionParams, useSession } from "next-auth/react";
 import UserProfileCreate from "~/_components/UserProfileCreate";
 import UserProfileEdit from "~/_components/UserProfileEdit";
+import { useRouter } from "next/router";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -27,6 +28,7 @@ export async function getServerSideProps(
 function Profile() {
   const session = useSession();
   const [editMode, setEditMode] = useState(false);
+  const router = useRouter();
 
   if (!session.data) return <div>Loading...</div>;
 
@@ -45,6 +47,8 @@ function Profile() {
       userId: session.data?.user?.id ?? "",
       ...profile,
     });
+    // redirect to rooms
+    await router.push("/rooms");
   };
 
   const edtiUserProfile = api.userProfile.updateUserProfile.useMutation();
