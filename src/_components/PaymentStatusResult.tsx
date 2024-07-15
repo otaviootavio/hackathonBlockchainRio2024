@@ -38,7 +38,7 @@ const PaymentStatusResult: React.FC<PaymentStatusResultProps> = ({ uuid }) => {
           <p>Transaction completed</p>
           <div>
             <Link
-              href={`https://${data.environment_networkid == "0" ? "livenet" : data.environment_networkid == "1" ? "testnet" : "devnet"}.xrpl.org/transactions/${data.txid}`}
+              href={`https://${data.environment_networkid == 0 ? "livenet" : data.environment_networkid == 1 ? "testnet" : "devnet"}.xrpl.org/transactions/${data.txid}`}
               passHref
               className="text-blue-500 hover:underline"
             >

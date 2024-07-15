@@ -1,8 +1,13 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "~/server/api/trpc";
 import axios from "axios";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
+import { db } from "~/server/db";
 
 const XUMM_API_KEY = env.XUMM_API_KEY;
 const XUMM_API_SECRET = env.XUMM_API_SECRET;
@@ -142,6 +147,60 @@ export const xamanRouter = createTRPCRouter({
               "Failed to retrieve payment status due to an unknown error.",
           });
         }
+      }
+    }),
+  createWebhookEvent: publicProcedure
+    .input(
+      z.object({
+        payloadId: z.string(),
+        referenceId: z.string(),
+        userId: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      try {
+        const webhookEvent = await db.webhookEvent.create({
+          data: {
+            payloadId: input.payloadId,
+            referenceId: input.referenceId,
+            userId: input.userId,
+            status: "pending",
+          },
+        });
+
+        return { status: "success", webhookEvent };
+      } catch (e) {
+        console.error("Failed to create webhook event:", e);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create webhook event.",
+          cause: e,
+        });
+      }
+    }),
+  getSuccessfulWebhookEvents: protectedProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+      }),
+    )
+    .query(async ({ input }) => {
+      try {
+        const successfulWebhookEvents = await db.webhookEvent.findMany({
+          where: {
+            userId: input.userId,
+            status: "signed",
+          },
+        });
+
+        return { status: "success", successfulWebhookEvents };
+      } catch (e) {
+        console.error("Failed to retrieve successful webhook events:", e);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to retrieve successful webhook events.",
+          cause: e,
+        });
       }
     }),
 });

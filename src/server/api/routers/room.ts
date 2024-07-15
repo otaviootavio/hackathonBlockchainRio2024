@@ -25,6 +25,7 @@ export const roomRouter = createTRPCRouter({
             name: input.name,
             description: input.description,
             totalPrice: input.totalPrice,
+            ownerId: input.userId,
           },
         });
 
@@ -82,6 +83,8 @@ export const roomRouter = createTRPCRouter({
         description: data.description,
         totalPrice: data.totalPrice,
         isOpen: data.isOpen,
+        isReadyForSettlement: data.isReadyForSettlement,
+        hasSettled: data.hasSettled,
       };
 
       return { ...room, participants };
@@ -116,6 +119,18 @@ export const roomRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findUnique({
+        where: { id: input.id },
+      });
+
+      if (!room) {
+        throw new Error("Room not found");
+      }
+
+      if (room.isReadyForSettlement) {
+        throw new Error("Room is ready for settlement and cannot be updated");
+      }
+
       return ctx.db.room.update({
         where: { id: input.id },
         data: {
@@ -130,7 +145,6 @@ export const roomRouter = createTRPCRouter({
   deleteRoom: protectedProcedure
     .input(z.object({ id: z.string(), userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Find the room and ensure the user is the owner
       const room = await ctx.db.room.findUnique({
         where: { id: input.id },
         include: {
@@ -152,12 +166,10 @@ export const roomRouter = createTRPCRouter({
       }
 
       return ctx.db.$transaction(async (prisma) => {
-        // Delete all participants associated with the room
         await prisma.participant.deleteMany({
           where: { roomId: input.id },
         });
 
-        // Delete the room
         return prisma.room.delete({
           where: { id: input.id },
         });
@@ -211,6 +223,58 @@ export const roomRouter = createTRPCRouter({
       return ctx.db.room.update({
         where: { id: input.id },
         data: { isOpen: false },
+      });
+    }),
+
+  setReadyForSettlement: protectedProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findFirst({
+        where: {
+          id: input.id,
+          ownerId: input.userId,
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found or you are not the owner");
+      }
+
+      if (room.isReadyForSettlement) {
+        throw new Error("Room is already set for settlement");
+      }
+
+      return ctx.db.room.update({
+        where: { id: input.id },
+        data: { isReadyForSettlement: true },
+      });
+    }),
+
+  settleRoom: protectedProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findFirst({
+        where: {
+          id: input.id,
+          ownerId: input.userId,
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found or you are not the owner");
+      }
+
+      if (!room.isReadyForSettlement) {
+        throw new Error("Room is not ready for settlement");
+      }
+
+      if (room.hasSettled) {
+        throw new Error("Room is already settled");
+      }
+
+      return ctx.db.room.update({
+        where: { id: input.id },
+        data: { hasSettled: true },
       });
     }),
 });

@@ -4,7 +4,6 @@ import { api } from "~/utils/api";
 export const useCreatePayment = () => {
   const mutation = api.xaman.createPaymentRequest.useMutation();
   const [error, setError] = useState<string | null>(null);
-  const [res, setRes] = useState<typeof mutation.data>();
   const [loading, setLoading] = useState(false);
 
   const createPayment = async (
@@ -22,7 +21,7 @@ export const useCreatePayment = () => {
         destinationTag,
         memo,
       });
-      setRes(res);
+      return res;
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -30,5 +29,5 @@ export const useCreatePayment = () => {
     }
   };
 
-  return { createPayment, error, loading, res };
+  return { createPayment, error, loading };
 };

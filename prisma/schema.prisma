@@ -57,6 +57,7 @@ model User {
     sessions      Session[]
     posts         Post[]
     userProfile   UserProfile?
+    Room          Room[]
 }
 
 model VerificationToken {
@@ -68,12 +69,16 @@ model VerificationToken {
 }
 
 model Room {
-    id           String        @id @default(uuid())
-    name         String
-    description  String
-    totalPrice   Int
-    isOpen       Boolean       @default(true)
-    participants Participant[]
+    id                   String        @id @default(uuid())
+    name                 String
+    description          String
+    totalPrice           Int
+    isOpen               Boolean       @default(true)
+    participants         Participant[]
+    isReadyForSettlement Boolean       @default(false) // true when owner says that the room is ready to settle, then no more modifications can be made
+    hasSettled           Boolean       @default(false) // true when all participants have settled
+    ownerId              String
+    owner                User          @relation(fields: [ownerId], references: [id])
 }
 
 model Participant {
@@ -96,4 +101,16 @@ model UserProfile {
     userId      String        @unique
     user        User          @relation(fields: [userId], references: [id])
     Participant Participant[]
+}
+
+model WebhookEvent {
+    id          String   @id @default(cuid())
+    payloadId   String   @unique
+    referenceId String   @unique
+    signed      Boolean?
+    txid        String? // Nullable because rejected transactions won't have a txid
+    status      String   @default("pending") // New field for tracking status
+    userId      String? // Nullable, as we might not always have userId initially
+    createdAt   DateTime @default(now())
+    updatedAt   DateTime @updatedAt
 }

@@ -7,6 +7,7 @@ import { RoomHeader } from "~/_components/RoomHeader";
 import { ParticipantsList } from "~/_components/ParticipantsList";
 import { RoomJoin } from "~/_components/RoomJoin";
 import { db } from "~/server/db";
+import RoomStatus from "~/_components/RoomStatus";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -56,6 +57,25 @@ export default function Room() {
       userId: session.data?.user?.id ?? "",
     },
   );
+
+  const setreadyForSettlement = api.room.setReadyForSettlement.useMutation();
+  const settleRoom = api.room.settleRoom.useMutation();
+
+  const handleSetReadyForSettlement = async () => {
+    await setreadyForSettlement.mutateAsync({
+      id: roomId,
+      userId: session.data?.user?.id ?? "",
+    });
+    await room.refetch();
+  };
+
+  const handleSetteleRoom = async () => {
+    await settleRoom.mutateAsync({
+      id: roomId,
+      userId: session.data?.user?.id ?? "",
+    });
+    await room.refetch();
+  };
 
   const isUserOwner =
     room.data?.participants?.some(
@@ -141,6 +161,11 @@ export default function Room() {
     <div className="flex h-screen flex-col items-center bg-blue-200">
       <div className="min-w-96">
         <div className="rounded-lg border-2 bg-white p-4">
+          <RoomStatus
+            room={room.data}
+            handleSettleRoom={handleSetteleRoom}
+            handleSetReadyForSettlement={handleSetReadyForSettlement}
+          />
           <RoomHeader
             room={room.data}
             onBack={() => router.push("/rooms")}
@@ -151,6 +176,7 @@ export default function Room() {
             removeParticipant={handleDeleteParticipant}
           />
           <ParticipantsList
+            room={room.data}
             participantsRefetch={room.refetch}
             isUserOwner={isUserOwner}
             participants={room.data.participants}

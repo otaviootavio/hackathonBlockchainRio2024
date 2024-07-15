@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useCreatePayment } from "../_hooks/useCreatePayment";
+import Link from "next/link";
 
 const CreatePayment: React.FC = () => {
   const { createPayment, error, loading, res } = useCreatePayment();
@@ -50,6 +51,9 @@ const CreatePayment: React.FC = () => {
           </p>
           <p>
             <strong>Next:</strong> {res.next}
+            <Link href={res.next} passHref>
+              Pay wit XRP
+            </Link>
           </p>
           <p>
             <strong>QR Code URL:</strong>

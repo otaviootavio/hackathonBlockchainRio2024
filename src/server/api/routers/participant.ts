@@ -79,6 +79,16 @@ export const participantRouter = createTRPCRouter({
         throw new Error("Participant not found");
       }
 
+      const room = await ctx.db.room.findUnique({
+        where: { id: participant.roomId },
+      });
+
+      if (room?.isReadyForSettlement && input.weight !== undefined) {
+        throw new Error(
+          "Cannot update weight after room is ready for settlement",
+        );
+      }
+
       const isOwner = await ctx.db.participant.findFirst({
         where: {
           roomId: participant.roomId,
@@ -91,10 +101,6 @@ export const participantRouter = createTRPCRouter({
         throw new Error(
           "Only the owner or the participant themselves can update the participant's details",
         );
-      }
-
-      if (input.weight !== undefined && input.weight <= 0) {
-        throw new Error("Weight must be greater than zero");
       }
 
       return ctx.db.participant.update({
