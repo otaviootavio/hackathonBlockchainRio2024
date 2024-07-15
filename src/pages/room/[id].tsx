@@ -46,7 +46,8 @@ export default function Room() {
   const roomId = router.query.id as string;
   const room = api.room.getRoomById.useQuery({ id: roomId });
   const session = useSession();
-
+  const hasEveryonePayed =
+    room.data?.participants.every((p: { payed: boolean }) => p.payed) ?? false;
   const addParticipant = api.participant.addParticipant.useMutation();
   const removeParticipantFromRoom =
     api.participant.removeParticipantFromRoom.useMutation();
@@ -70,11 +71,13 @@ export default function Room() {
   };
 
   const handleSetteleRoom = async () => {
-    await settleRoom.mutateAsync({
-      id: roomId,
-      userId: session.data?.user?.id ?? "",
-    });
-    await room.refetch();
+    if (hasEveryonePayed) {
+      await settleRoom.mutateAsync({
+        id: roomId,
+        userId: session.data?.user?.id ?? "",
+      });
+      await room.refetch();
+    }
   };
 
   const isUserOwner =
@@ -162,9 +165,11 @@ export default function Room() {
       <div className="min-w-96">
         <div className="rounded-lg border-2 bg-white p-4">
           <RoomStatus
+            isUserOwner={isUserOwner}
             room={room.data}
             handleSettleRoom={handleSetteleRoom}
             handleSetReadyForSettlement={handleSetReadyForSettlement}
+            hasEveryonePayed={hasEveryonePayed}
           />
           <RoomHeader
             room={room.data}

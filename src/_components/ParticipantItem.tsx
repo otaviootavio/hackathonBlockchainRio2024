@@ -50,6 +50,7 @@ const ParticipantActions = ({
   amount,
   noPaymentsConfirmed,
   isReadyForSettlement,
+  payed,
 }: {
   canRemoveThisParticipant: boolean;
   removeParticipant: (participantId: string) => void;
@@ -59,6 +60,7 @@ const ParticipantActions = ({
   amount: string;
   noPaymentsConfirmed: boolean;
   isReadyForSettlement: boolean;
+  payed: boolean;
 }) => (
   <div className="flex flex-col justify-start space-y-2 md:flex-row md:space-x-2 md:space-y-0">
     {canRemoveThisParticipant && (
@@ -67,9 +69,10 @@ const ParticipantActions = ({
         participantId={participantId}
       />
     )}
-    {isThisParticipantUser && isReadyForSettlement && noPaymentsConfirmed && (
-      <PayAmountToAddress amount={amount} address={ownerAddress} />
-    )}
+    {isThisParticipantUser &&
+      isReadyForSettlement &&
+      noPaymentsConfirmed &&
+      !payed && <PayAmountToAddress amount={amount} address={ownerAddress} />}
   </div>
 );
 
@@ -143,7 +146,7 @@ export function ParticipantItem({
   const canUserEditThisParticipantWeight =
     !room.isReadyForSettlement && !room.hasSettled;
   const canRemoveThisParticipant = isUserOwner && !isThisParticipantUser;
-
+  const isParticipantOwner = participant.role === "owner";
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
 
   const handleWeightChange = async (newWeight: number) => {
@@ -177,6 +180,7 @@ export function ParticipantItem({
           <h2 className="text-2xl font-bold">{name}</h2>
         </div>
         <PaymentStatusTag payed={payed} />
+        {isParticipantOwner && <>Owner!</>}
         <ParticipantActions
           canRemoveThisParticipant={canRemoveThisParticipant}
           removeParticipant={removeParticipant}
@@ -185,6 +189,7 @@ export function ParticipantItem({
           amount={amount}
           isThisParticipantUser={isThisParticipantUser}
           noPaymentsConfirmed={noPaymentsConfirmed}
+          payed={payed}
           isReadyForSettlement={room.isReadyForSettlement}
         />
         {isLoading && <p>Loading webhook events...</p>}
@@ -204,11 +209,13 @@ export function ParticipantItem({
         )}
       </div>
       <div className="self-center p-2 text-right">{amount}</div>
-      <WeightAdjuster
-        weight={weight}
-        handleWeightChange={handleWeightChange}
-        canUserEditThisParticipantWeight={canUserEditThisParticipantWeight}
-      />
+      {(isThisParticipantUser || isUserOwner) && (
+        <WeightAdjuster
+          weight={weight}
+          handleWeightChange={handleWeightChange}
+          canUserEditThisParticipantWeight={canUserEditThisParticipantWeight}
+        />
+      )}
     </div>
   );
 }

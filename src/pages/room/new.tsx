@@ -40,6 +40,7 @@ export default function NewRoom() {
   const [name, setName] = useState("");
   const [totalPrice, setTotalPrice] = useState<number>(0);
   const [description, setDescription] = useState("");
+  const [participantPayed] = useState(true);
   const createRoom = api.room.createRoom.useMutation();
   const router = useRouter();
   const session = useSession();
@@ -53,7 +54,7 @@ export default function NewRoom() {
         totalPrice,
         description,
         participantName: userProfile.data?.name ?? "",
-        participantPayed: false,
+        participantPayed: participantPayed,
         userId: session.data?.user?.id ?? "",
         userProfileId: userProfile.data?.id ?? "",
       })
@@ -69,6 +70,8 @@ export default function NewRoom() {
           <div className="flex flex-row justify-between">
             <div>
               <h2 className="text-2xl font-bold">Create Room</h2>
+              <h3>You will be the owner of this room</h3>
+              <h3>We considered that you payed for the pizza today!</h3>
             </div>
           </div>
           <div className="flex flex-col">
@@ -85,7 +88,7 @@ export default function NewRoom() {
             </div>
             <div>
               <label htmlFor="roomPrice" className="block text-gray-700">
-                Room Price (in XRP)
+                Pizza Price (in XRP)
               </label>
               <input
                 onChange={(e) => setTotalPrice(Number(e.target.value))}
