@@ -5,20 +5,21 @@ import {
   createContext,
   useReducer,
   ReactNode,
-  Dispatch,
 } from "react";
 import Pusher, { Channel, PresenceChannel } from "pusher-js";
 import { env } from "~/env";
 
 interface PusherProps {
   slug: string;
+  userInfo: { name: string };
+  userId: string;
 }
 
 interface PusherState {
   pusherClient: Pusher | null;
   channel: Channel | null;
   presenceChannel: PresenceChannel | null;
-  members: Map<string, unknown>;
+  members: Map<string, any>; // Use 'any' to store user info including names
 }
 
 type PusherAction =
@@ -28,7 +29,7 @@ type PusherAction =
       channel: Channel;
       presenceChannel: PresenceChannel;
     }
-  | { type: "SET_MEMBERS"; members: Record<string, unknown> };
+  | { type: "SET_MEMBERS"; members: Record<string, any> };
 
 const PusherContext = createContext<PusherState | null>(null);
 
@@ -54,18 +55,17 @@ const pusherReducer = (
   }
 };
 
-const createPusherClient = ({ slug }: PusherProps) => {
+const createPusherClient = ({ slug, userInfo, userId }: PusherProps) => {
   let pusherClient: Pusher;
   if (Pusher.instances.length) {
     pusherClient = Pusher.instances[0] as Pusher;
     pusherClient.connect();
   } else {
-    const randomUserId = `random-user-id:${Math.random().toFixed(7)}`;
     pusherClient = new Pusher(env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER,
       authEndpoint: "/api/pusher/auth-channel",
       auth: {
-        headers: { user_id: randomUserId },
+        headers: { user_id: userId, user_info: JSON.stringify(userInfo) },
       },
     });
   }
@@ -80,7 +80,12 @@ const createPusherClient = ({ slug }: PusherProps) => {
 
 type PusherProviderProps = React.PropsWithChildren<PusherProps>;
 
-export const PusherProvider = ({ slug, children }: PusherProviderProps) => {
+export const PusherProvider = ({
+  slug,
+  children,
+  userInfo,
+  userId,
+}: PusherProviderProps) => {
   const [state, dispatch] = useReducer(pusherReducer, {
     pusherClient: null,
     channel: null,
@@ -91,6 +96,8 @@ export const PusherProvider = ({ slug, children }: PusherProviderProps) => {
   useEffect(() => {
     const { pusherClient, channel, presenceChannel } = createPusherClient({
       slug,
+      userInfo,
+      userId,
     });
 
     dispatch({ type: "INIT_PUSHER", pusherClient, channel, presenceChannel });
@@ -109,7 +116,7 @@ export const PusherProvider = ({ slug, children }: PusherProviderProps) => {
     return () => {
       pusherClient.disconnect();
     };
-  }, [slug]);
+  }, [slug, userInfo, userId]);
 
   if (!state.pusherClient) return null;
 
@@ -151,3 +158,8 @@ export function useSubscribeToEvent<MessageType>(
 
 export const useCurrentMemberCount = () =>
   usePusherState((state) => state.members.size);
+
+export const useCurrentMembers = () =>
+  usePusherState((state) =>
+    Array.from(state.members.values()).map((member) => member.name),
+  );
