@@ -40,7 +40,6 @@ interface RoomHeaderProps {
 
 export const RoomHeader: React.FC<RoomHeaderProps> = ({
   room,
-  onBack,
   isUserOwner,
   handleOpenRoom,
   handleCloseRoom,

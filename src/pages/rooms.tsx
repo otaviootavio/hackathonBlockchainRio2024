@@ -1,15 +1,9 @@
 import { useRouter } from "next/router";
-import {
-  type GetSessionParams,
-  getSession,
-  signOut,
-  useSession,
-} from "next-auth/react";
+import { type GetSessionParams, getSession, useSession } from "next-auth/react";
 import { api } from "~/utils/api";
 import { Room } from "../_components/Room";
-import Link from "next/link";
+
 import { db } from "~/server/db";
-import { NavBar } from "~/_components/NavBar";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -48,10 +42,6 @@ export default function Rooms() {
   const session = useSession();
 
   const rooms = api.room.getRoomsByUserIdInEachRoom.useQuery({
-    userId: session.data?.user?.id ?? "",
-  });
-
-  const userProfile = api.userProfile.getUserProfileByUserId.useQuery({
     userId: session.data?.user?.id ?? "",
   });
 
