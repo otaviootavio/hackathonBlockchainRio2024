@@ -169,36 +169,32 @@ export default function Room() {
   }
 
   return (
-    <div className="flex h-screen flex-col items-center bg-blue-200">
-      <div className="min-w-96">
-        <div className="rounded-lg border-2 bg-white p-4">
-          <RoomStatus
-            isUserOwner={isUserOwner}
-            room={room.data}
-            handleSettleRoom={handleSetteleRoom}
-            handleSetReadyForSettlement={handleSetReadyForSettlement}
-            hasEveryonePayed={hasEveryonePayed}
-          />
-          <RoomHeader
-            room={room.data}
-            onBack={() => router.push("/rooms")}
-            isUserOwner={isUserOwner}
-            userParticipantData={userParticipantData}
-            handleOpenRoom={handleOpenRoom}
-            handleCloseRoom={handleCloseRoom}
-            removeParticipant={handleDeleteParticipant}
-          />
-          <ParticipantsList
-            room={room.data}
-            participantsRefetch={room.refetch}
-            isUserOwner={isUserOwner}
-            participants={room.data.participants}
-            isLoading={room.isLoading}
-            handleDeleteParticipant={handleDeleteParticipant}
-            totalPrice={room.data.totalPrice}
-          />
-        </div>
-      </div>
-    </div>
+    <>
+      <RoomStatus
+        isUserOwner={isUserOwner}
+        room={room.data}
+        handleSettleRoom={handleSetteleRoom}
+        handleSetReadyForSettlement={handleSetReadyForSettlement}
+        hasEveryonePayed={hasEveryonePayed}
+      />
+      <RoomHeader
+        room={room.data}
+        onBack={() => router.push("/rooms")}
+        isUserOwner={isUserOwner}
+        userParticipantData={userParticipantData}
+        handleOpenRoom={handleOpenRoom}
+        handleCloseRoom={handleCloseRoom}
+        removeParticipant={handleDeleteParticipant}
+      />
+      <ParticipantsList
+        room={room.data}
+        participantsRefetch={room.refetch}
+        isUserOwner={isUserOwner}
+        participants={room.data.participants}
+        isLoading={room.isLoading}
+        handleDeleteParticipant={handleDeleteParticipant}
+        totalPrice={room.data.totalPrice}
+      />
+    </>
   );
 }

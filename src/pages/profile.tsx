@@ -67,8 +67,8 @@ function Profile() {
   };
 
   return (
-    <div className="flex h-screen flex-col items-center bg-blue-200">
-      <div className="min-w-96 gap-4">
+    <div className="flex h-screen flex-col items-center">
+      <div className="min-w-96 p-4">
         <div className="rounded-lg border-2 bg-white p-4">
           <div className="flex justify-between ">
             <h1 className="my-4 text-2xl font-bold">User Profile</h1>

@@ -70,10 +70,11 @@ const RoomStatus: React.FC<RoomStatusProps> = ({
   isUserOwner,
 }) => {
   return (
-    <div className="bg-slate-100 p-1">
-      <div className="rounded-sm border border-gray-300 bg-white ">
-        <div className=" flex flex-row items-center justify-between gap-2 p-4">
+    <div className="p-2">
+      <div className="flex flex-col gap-2 rounded-md border border-slate-300 bg-slate-50 ">
+        <div className="flex flex-row items-center justify-between p-2">
           <div>
+            <div className="text-xs  text-slate-600">Status:</div>
             <strong>
               {!room.isReadyForSettlement && !room.hasSettled && (
                 <>
@@ -92,6 +93,7 @@ const RoomStatus: React.FC<RoomStatusProps> = ({
               )}
             </strong>
           </div>
+
           <div>
             <RenderButton
               {...{
