@@ -4,6 +4,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
+import { pusherServerClient } from "~/server/pusher";
 
 export const roomRouter = createTRPCRouter({
   createRoom: protectedProcedure
@@ -39,6 +40,8 @@ export const roomRouter = createTRPCRouter({
             weight: 1,
           },
         });
+
+        await pusherServerClient.trigger(`room-${room.id}`, "room-created", {});
 
         return room;
       });
@@ -108,42 +111,19 @@ export const roomRouter = createTRPCRouter({
       });
     }),
 
-  updateRoom: protectedProcedure
+  // TODO
+  // This is not being used
+  // We need to create a page to update the room
+  updateRoomData: protectedProcedure
     .input(
       z.object({
         id: z.string(),
         name: z.string().optional(),
         description: z.string().optional(),
         totalPrice: z.number().optional(),
-        isOpen: z.boolean().optional(),
+        userId: z.string(),
       }),
     )
-    .mutation(async ({ ctx, input }) => {
-      const room = await ctx.db.room.findUnique({
-        where: { id: input.id },
-      });
-
-      if (!room) {
-        throw new Error("Room not found");
-      }
-
-      if (room.isReadyForSettlement) {
-        throw new Error("Room is ready for settlement and cannot be updated");
-      }
-
-      return ctx.db.room.update({
-        where: { id: input.id },
-        data: {
-          name: input.name,
-          description: input.description,
-          totalPrice: input.totalPrice,
-          isOpen: input.isOpen,
-        },
-      });
-    }),
-
-  deleteRoom: protectedProcedure
-    .input(z.object({ id: z.string(), userId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const room = await ctx.db.room.findUnique({
         where: { id: input.id },
@@ -154,8 +134,12 @@ export const roomRouter = createTRPCRouter({
 
       if (!room) {
         throw new Error("Room not found");
+      } else if (room.isReadyForSettlement) {
+        throw new Error("Room is ready for settlement and cannot be updated");
+      } else if (room.hasSettled) {
+        throw new Error("Room is settled and cannot be updated");
       }
-
+      // Verify that the user is the owner of the room
       const owner = room.participants.find(
         (participant) =>
           participant.userId === input.userId && participant.role === "owner",
@@ -165,10 +149,49 @@ export const roomRouter = createTRPCRouter({
         throw new Error("You are not the owner of this room");
       }
 
+      const res = await ctx.db.room.update({
+        where: { id: input.id },
+        data: {
+          name: input.name,
+          description: input.description,
+          totalPrice: input.totalPrice,
+        },
+      });
+
+      await pusherServerClient.trigger(`room-${input.id}`, "room-updated", {});
+
+      return res;
+    }),
+
+  deleteRoom: protectedProcedure
+    .input(z.object({ id: z.string(), userId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const room = await ctx.db.room.findFirst({
+        where: {
+          id: input.id,
+          participants: {
+            some: {
+              userId: input.userId,
+              role: "owner",
+            },
+          },
+        },
+      });
+
+      if (!room) {
+        throw new Error("Room not found or you are not the owner");
+      }
+
       return ctx.db.$transaction(async (prisma) => {
         await prisma.participant.deleteMany({
           where: { roomId: input.id },
         });
+
+        await pusherServerClient.trigger(
+          `room-${input.id}`,
+          "room-deleted",
+          {},
+        );
 
         return prisma.room.delete({
           where: { id: input.id },
@@ -195,10 +218,14 @@ export const roomRouter = createTRPCRouter({
         throw new Error("Room not found or you are not the owner");
       }
 
-      return ctx.db.room.update({
+      const res = await ctx.db.room.update({
         where: { id: input.id },
         data: { isOpen: true },
       });
+
+      await pusherServerClient.trigger(`room-${input.id}`, "room-opened", {});
+
+      return res;
     }),
 
   closeRoom: protectedProcedure
@@ -220,10 +247,14 @@ export const roomRouter = createTRPCRouter({
         throw new Error("Room not found or you are not the owner");
       }
 
-      return ctx.db.room.update({
+      const res = await ctx.db.room.update({
         where: { id: input.id },
         data: { isOpen: false },
       });
+
+      await pusherServerClient.trigger(`room-${input.id}`, "room-closed", {});
+
+      return res;
     }),
 
   setReadyForSettlement: protectedProcedure
@@ -244,10 +275,18 @@ export const roomRouter = createTRPCRouter({
         throw new Error("Room is already set for settlement");
       }
 
-      return ctx.db.room.update({
+      const res = await ctx.db.room.update({
         where: { id: input.id },
         data: { isReadyForSettlement: true },
       });
+
+      await pusherServerClient.trigger(
+        `room-${input.id}`,
+        "room-ready-for-settlement",
+        {},
+      );
+
+      return res;
     }),
 
   settleRoom: protectedProcedure
@@ -272,9 +311,19 @@ export const roomRouter = createTRPCRouter({
         throw new Error("Room is already settled");
       }
 
-      return ctx.db.room.update({
+      const res = await ctx.db.room.update({
         where: { id: input.id },
         data: { hasSettled: true },
       });
+
+      await pusherServerClient.trigger(
+        `user-${input.userId}`,
+        `room-${input.id}-settled`,
+        {
+          roomId: input.id,
+        },
+      );
+
+      return res;
     }),
 });

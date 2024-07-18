@@ -29,6 +29,9 @@ export const env = createEnv({
     AUTH0_ISSUER: z.string(),
     XUMM_API_KEY: z.string(),
     XUMM_API_SECRET: z.string(),
+
+    PUSHER_APP_ID: z.string(),
+    PUSHER_SECRET: z.string(),
   },
 
   /**
@@ -37,6 +40,8 @@ export const env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
+    NEXT_PUBLIC_PUSHER_KEY: z.string(),
+    NEXT_PUBLIC_PUSHER_CLUSTER: z.string(),
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
   },
 
@@ -56,6 +61,12 @@ export const env = createEnv({
     AUTH0_ISSUER: process.env.AUTH0_ISSUER,
     XUMM_API_KEY: process.env.XUMM_API_KEY,
     XUMM_API_SECRET: process.env.XUMM_API_SECRET,
+
+    PUSHER_APP_ID: process.env.PUSHER_APP_ID,
+    PUSHER_SECRET: process.env.PUSHER_SECRET,
+
+    NEXT_PUBLIC_PUSHER_KEY: process.env.NEXT_PUBLIC_PUSHER_KEY,
+    NEXT_PUBLIC_PUSHER_CLUSTER: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
