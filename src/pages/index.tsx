@@ -1,5 +1,5 @@
 import { signIn, useSession } from "next-auth/react";
-import Head from "next/head";
+import Image from "next/image";
 import { useRouter } from "next/router";
 
 export default function Home() {
@@ -7,51 +7,53 @@ export default function Home() {
   const router = useRouter();
 
   return (
-    <>
-      <Head>
-        <title>Pizza314</title>
-        <meta
-          name="description"
-          content="Pizza314 - Split Pizza Ordering App"
-        />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-[#2e026d] to-[#15162c]">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          <h1 className="text-5xl font-extrabold tracking-tight text-white sm:text-[5rem]">
-            Welcome to{" "}
-            <span className="text-[hsl(280,100%,70%)]">Pizza314</span>
-          </h1>
-          <p className="text-2xl text-white">
-            The ultimate app for splitting your pizza orders!
-          </p>
-          {status === "authenticated" ? (
-            <div className="flex flex-col items-center gap-4">
+    <div className="flex grow flex-col justify-center">
+      <div className="flex flex-col items-center justify-center">
+        <div>
+          <Image
+            src="/undraw_pizza_sharing_wxop.svg"
+            alt="logo"
+            width={400}
+            height={400}
+          />
+        </div>
+        <div>
+          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-6xl font-extrabold tracking-tight text-transparent sm:text-[4rem]">
+            Welcome to
+          </div>
+        </div>
+        <div className="flex flex-row items-center justify-center">
+          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-6xl font-extrabold tracking-tight text-transparent sm:text-[4rem]">
+            XRPizza
+          </div>
+          <div className="mx-4">
+            {status === "authenticated" ? (
               <button
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+                className="transform rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-10 py-3 font-semibold text-white transition-transform hover:scale-105"
                 onClick={() => void router.push("/rooms")}
               >
                 Go to rooms
               </button>
-            </div>
-          ) : status === "unauthenticated" ? (
-            <div className="flex flex-col items-center gap-4">
+            ) : status === "unauthenticated" ? (
               <button
-                className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20"
+                className="transform rounded-full bg-gradient-to-r from-green-400 to-blue-500 px-10 py-3 font-semibold text-white transition-transform hover:scale-105"
                 onClick={() => void signIn()}
               >
                 Sign in to get started
               </button>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-4">
-              <button className="rounded-full bg-white/10 px-10 py-3 font-semibold text-white no-underline transition hover:bg-white/20">
+            ) : (
+              <button className="rounded-full bg-gradient-to-r from-gray-400 to-gray-600 px-10 py-3 font-semibold text-white">
                 Loading...
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </main>
-    </>
+        <div>
+          <p className="mt-4 text-2xl text-gray-800">
+            Split your pizza orders empowered by XRP!
+          </p>
+        </div>
+      </div>
+    </div>
   );
 }

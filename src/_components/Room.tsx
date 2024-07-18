@@ -27,21 +27,21 @@ export function Room({
   };
 
   return (
-    <div className="flex flex-row justify-between rounded-sm border border-gray-300 bg-white p-4">
-      <div>
+    <div className="flex flex-row justify-between">
+      <article className="text-wrap break-all">
         <h2 className="text-2xl font-bold">{room.name}</h2>
         <p className="text-lg">{room.description}</p>
-      </div>
-      <div className="self-center">
+      </article>
+      <div className="flex flex-col justify-around gap-2">
         <button
           onClick={handleClick}
-          className="rounded border border-gray-300 bg-gray-200 px-4 py-2 font-semibold text-gray-700 hover:bg-gray-300"
+          className="rounded-xl border border-gray-300 bg-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-300"
         >
           Join
         </button>
         <button
           onClick={handleDeleteRoom}
-          className="rounded border border-gray-300 bg-red-200 px-4 py-2 font-semibold text-red-700 hover:bg-red-300"
+          className="rounded-xl border border-gray-300 bg-red-200 px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-300"
         >
           Delete
         </button>

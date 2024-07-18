@@ -174,7 +174,7 @@ export function ParticipantItem({
     webhookEvents?.successfulWebhookEvents.length === 0;
 
   return (
-    <div className="flex flex-row justify-between rounded border border-gray-300 bg-white p-4">
+    <div className="flex flex-row justify-between rounded border border-slate-300 bg-slate-50 p-4">
       <div className="flex flex-col">
         <div className="flex flex-row justify-between">
           <h2 className="text-2xl font-bold">{name}</h2>

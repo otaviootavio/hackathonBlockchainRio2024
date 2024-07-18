@@ -6,6 +6,8 @@ import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
+import { NavBar } from "~/_components/NavBar";
+import Head from "next/head";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -13,8 +15,20 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
+      <Head>
+        <title>XRPizza</title>
+        <meta name="description" content="XRPizza - Split Pizza Ordering App" />
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
       <div className={GeistSans.className}>
-        <Component {...pageProps} />
+        <main className="min-h-screen bg-slate-100">
+          <div className="mx-auto flex min-h-screen max-w-xl flex-col justify-start bg-white shadow-xl">
+            <NavBar />
+            <div className="flex grow flex-col  p-2">
+              <Component {...pageProps} />
+            </div>
+          </div>
+        </main>
       </div>
     </SessionProvider>
   );
