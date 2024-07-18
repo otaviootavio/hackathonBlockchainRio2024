@@ -16,7 +16,7 @@ export function NavBar() {
           >
             {/* TODO: Add logo */}
             <span className="self-center whitespace-nowrap text-2xl font-semibold ">
-              Pizza314
+              XRPizza
             </span>
           </a>
           <ul className="mt-4 flex flex-row gap-4 rounded-lg bg-gray-50 font-medium">
