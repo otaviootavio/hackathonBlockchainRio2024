@@ -8,8 +8,8 @@ export default function Home() {
 
   return (
     <div className="flex grow flex-col justify-center">
-      <div className="flex flex-col items-center justify-center">
-        <div>
+      <div className="flex flex-col">
+        <div className="self-center">
           <Image
             src="/undraw_pizza_sharing_wxop.svg"
             alt="logo"
@@ -17,19 +17,19 @@ export default function Home() {
             height={400}
           />
         </div>
-        <div>
-          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-6xl font-extrabold tracking-tight text-transparent sm:text-[4rem]">
+        <div className="flex flex-row items-center justify-center ">
+          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent sm:text-[4rem]">
             Welcome to
           </div>
         </div>
-        <div className="flex flex-row items-center justify-center">
-          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-6xl font-extrabold tracking-tight text-transparent sm:text-[4rem]">
+        <div className="flex  flex-row items-center justify-center ">
+          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent sm:text-[4rem]">
             XRPizza
           </div>
           <div className="mx-4">
             {status === "authenticated" ? (
               <button
-                className="transform rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-10 py-3 font-semibold text-white transition-transform hover:scale-105"
+                className="transform rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2 font-semibold text-white transition-transform hover:scale-105"
                 onClick={() => void router.push("/rooms")}
               >
                 Go to rooms
@@ -48,10 +48,8 @@ export default function Home() {
             )}
           </div>
         </div>
-        <div>
-          <p className="mt-4 text-2xl text-gray-800">
-            Split your pizza orders empowered by XRP!
-          </p>
+        <div className="mt-3 flex flex-row items-center justify-center text-center text-2xl text-slate-600">
+          Split your pizza orders empowered by XRP!
         </div>
       </div>
     </div>
