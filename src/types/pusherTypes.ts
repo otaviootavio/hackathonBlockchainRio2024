@@ -1,4 +1,5 @@
-import Pusher, { Channel, PresenceChannel } from "pusher-js";
+import { type Channel, type PresenceChannel } from "pusher-js";
+import type Pusher from "pusher-js";
 
 export interface PusherProps {
   slug: string;
@@ -10,7 +11,7 @@ export interface PusherState {
   pusherClient: Pusher | null;
   channel: Channel | null;
   presenceChannel: PresenceChannel | null;
-  members: Map<string, any>;
+  members: Map<string, { name: string }>;
 }
 
 export type PusherAction =
@@ -20,4 +21,4 @@ export type PusherAction =
       channel: Channel;
       presenceChannel: PresenceChannel;
     }
-  | { type: "SET_MEMBERS"; members: Record<string, any> };
+  | { type: "SET_MEMBERS"; members: Record<string, { name: string }> };

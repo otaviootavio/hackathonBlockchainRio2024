@@ -2,7 +2,7 @@ import React, { useEffect, useReducer } from "react";
 import { PusherContext } from "./PusherContext";
 import { pusherReducer } from "./pusherReducer";
 import { createPusherClient } from "../../utils/pusher";
-import { PusherProps } from "../../types/pusherTypes";
+import { type PusherProps } from "../../types/pusherTypes";
 
 type PusherProviderProps = React.PropsWithChildren<PusherProps>;
 
@@ -28,9 +28,11 @@ export const PusherProvider = ({
 
     dispatch({ type: "INIT_PUSHER", pusherClient, channel, presenceChannel });
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const updateMembers = () => {
       dispatch({
         type: "SET_MEMBERS",
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         members: presenceChannel.members.members,
       });
     };

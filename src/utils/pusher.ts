@@ -1,6 +1,7 @@
-import Pusher, { Channel, PresenceChannel } from "pusher-js";
+import { type Channel, type PresenceChannel } from "pusher-js";
+import Pusher from "pusher-js";
 import { env } from "../env";
-import { PusherProps } from "../types/pusherTypes";
+import { type PusherProps } from "../types/pusherTypes";
 
 interface PusherClient {
   pusherClient: Pusher;
@@ -16,7 +17,7 @@ export const createPusherClient = ({
   let pusherClient: Pusher;
 
   if (Pusher.instances.length > 0) {
-    pusherClient = Pusher.instances[0] as Pusher;
+    pusherClient = Pusher.instances[0]!;
 
     if (!pusherClient) {
       throw new Error("Failed to initialize Pusher client");
@@ -33,7 +34,7 @@ export const createPusherClient = ({
     });
   }
 
-  const channel = pusherClient.subscribe(slug) as Channel;
+  const channel = pusherClient.subscribe(slug);
   const presenceChannel = pusherClient.subscribe(
     `presence-${slug}`,
   ) as PresenceChannel;

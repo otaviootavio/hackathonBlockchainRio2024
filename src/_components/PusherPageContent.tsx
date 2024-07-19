@@ -9,12 +9,22 @@ interface DummyEventData {
   message: string;
 }
 
+// interface RoomClosedEventData {}
+
 const PusherPageContent = () => {
   const memberCount = useCurrentMemberCount();
   const members = useCurrentMembers();
 
   useSubscribeToEvent<DummyEventData>("dummy-event", (data) => {
     console.log("Received dummy event:", data);
+  });
+
+  useSubscribeToEvent("room-closed", () => {
+    console.log("Room has been closed.");
+  });
+
+  useSubscribeToEvent("room-opened", () => {
+    console.log("Room has been opened.");
   });
 
   useEffect(() => {

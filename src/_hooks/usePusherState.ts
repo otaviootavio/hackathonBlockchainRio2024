@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { PusherState } from "../types/pusherTypes";
+import { type PusherState } from "../types/pusherTypes";
 import { PusherContext } from "~/_context/pusher/PusherContext";
 
 function usePusherState<T>(selector: (state: PusherState) => T): T {
