@@ -8,6 +8,8 @@ import { ParticipantsList } from "~/_components/ParticipantsList";
 import { RoomJoin } from "~/_components/RoomJoin";
 import { db } from "~/server/db";
 import RoomStatus from "~/_components/RoomStatus";
+import { PusherProvider } from "~/_context/pusher/PusherProvider";
+import { useSubscribeToEvent } from "~/_hooks";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -41,7 +43,7 @@ export async function getServerSideProps(
   };
 }
 
-export default function Room() {
+export function Room() {
   const router = useRouter();
   const roomId = router.query.id as string;
   const room = api.room.getRoomById.useQuery({ id: roomId });
@@ -62,12 +64,62 @@ export default function Room() {
   const setreadyForSettlement = api.room.setReadyForSettlement.useMutation();
   const settleRoom = api.room.settleRoom.useMutation();
 
+  // useSubscribeToEvent("room-opened", () => {
+  //   console.log("Room has been opened.");
+  // });
+
+  useSubscribeToEvent("room-closed", () => {
+    console.log("Room has been opened.");
+    room.refetch().catch(console.error);
+  });
+
+  useSubscribeToEvent("room-created", () => {
+    console.log("Room has been created.");
+    room.refetch().catch(console.error);
+  });
+
+  useSubscribeToEvent("room-updated", () => {
+    console.log("Room has been updated.");
+    room.refetch().catch(console.error);
+  });
+
+  // useSubscribeToEvent("room-deleted", async() => {
+  //   console.log("Room has been deleted.");
+  //   await room.refetch();
+  // });
+
+  useSubscribeToEvent("room-ready-for-settlement", () => {
+    console.log("Room is ready for settlement.");
+    room.refetch().catch(console.error);
+  });
+
+  useSubscribeToEvent("room-settled", () => {
+    console.log("Room has been settled.");
+    room.refetch().catch(console.error);
+  });
+
+  useSubscribeToEvent("participant-added", () => {
+    console.log("Participant has been added.");
+    room.refetch().catch(console.error);
+  });
+
+  useSubscribeToEvent("participant-updated", () => {
+    console.log("Participant has been updated.");
+    room.refetch().catch(console.error);
+  });
+
+  useSubscribeToEvent("participant-deleted", () => {
+    console.log("Participant has been deleted.");
+    room.refetch().catch(console.error);
+  });
+
   const handleSetReadyForSettlement = async () => {
     await setreadyForSettlement.mutateAsync({
       id: roomId,
       userId: session.data?.user?.id ?? "",
     });
     await room.refetch();
+    return;
   };
 
   const handleSetteleRoom = async () => {
@@ -197,4 +249,27 @@ export default function Room() {
       />
     </>
   );
+}
+
+export default function Page() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  if (status === "unauthenticated") {
+    return <div>Please sign in</div>;
+  } else if (status === "loading") {
+    return <div>Loading...</div>;
+  } else if (
+    status === "authenticated" &&
+    typeof router?.query?.id == "string"
+  ) {
+    return (
+      <PusherProvider
+        slug={`room-${router?.query?.id ?? ""}`}
+        userInfo={{ name: session.user.name ?? "" }}
+        userId={session.user.id}
+      >
+        <Room />
+      </PusherProvider>
+    );
+  }
 }

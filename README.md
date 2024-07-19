@@ -27,3 +27,13 @@ You can check out the [create-t3-app GitHub repository](https://github.com/t3-os
 ## How do I deploy this?
 
 Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+
+## Todos
+
+- What happens if the owner deletes?
+  -- While participants are still paying, the owner can't delete the room
+  -- While there are users viewing the room
+- What happens to the user if the owner removes them from the room?
+- The user stills can see the detele button in the Rooms page
+- Even tho the user has not joined the room, they can still listen to the events
+- Loading pages are weird

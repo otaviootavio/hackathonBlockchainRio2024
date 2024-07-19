@@ -85,7 +85,7 @@ const WeightAdjuster = ({
   handleWeightChange: (newWeight: number) => void;
   canUserEditThisParticipantWeight: boolean;
 }) => (
-  <div className="flex items-center justify-end">
+  <div className="flex w-24  items-center justify-end">
     {canUserEditThisParticipantWeight && (
       <>
         <button
@@ -144,7 +144,9 @@ export function ParticipantItem({
   const { weight, payed, userId, userParticipantId, name } = participant;
   const isThisParticipantUser = userId === session.data?.user?.id;
   const canUserEditThisParticipantWeight =
-    !room.isReadyForSettlement && !room.hasSettled;
+    !room.isReadyForSettlement &&
+    !room.hasSettled &&
+    (isThisParticipantUser || isUserOwner);
   const canRemoveThisParticipant = isUserOwner && !isThisParticipantUser;
   const isParticipantOwner = participant.role === "owner";
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
@@ -209,13 +211,11 @@ export function ParticipantItem({
         )}
       </div>
       <div className="self-center p-2 text-right">{amount}</div>
-      {(isThisParticipantUser || isUserOwner) && (
-        <WeightAdjuster
-          weight={weight}
-          handleWeightChange={handleWeightChange}
-          canUserEditThisParticipantWeight={canUserEditThisParticipantWeight}
-        />
-      )}
+      <WeightAdjuster
+        weight={weight}
+        handleWeightChange={handleWeightChange}
+        canUserEditThisParticipantWeight={canUserEditThisParticipantWeight}
+      />
     </div>
   );
 }
