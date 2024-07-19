@@ -4,6 +4,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
+import { pusherServerClient } from "~/server/pusher";
 
 export const participantRouter = createTRPCRouter({
   addParticipant: protectedProcedure
@@ -41,7 +42,7 @@ export const participantRouter = createTRPCRouter({
         }
       }
 
-      return ctx.db.participant.create({
+      const participant = await ctx.db.participant.create({
         data: {
           userProfileId: input.userProfileId,
           roomId: input.roomId,
@@ -51,6 +52,16 @@ export const participantRouter = createTRPCRouter({
           weight: 1,
         },
       });
+
+      await pusherServerClient.trigger(
+        `room-${input.roomId}`,
+        "participant-added",
+        {
+          participantId: participant.id,
+        },
+      );
+
+      return participant;
     }),
 
   getParticipantsByRoom: publicProcedure
@@ -103,13 +114,23 @@ export const participantRouter = createTRPCRouter({
         );
       }
 
-      return ctx.db.participant.update({
+      const res = await ctx.db.participant.update({
         where: { id: input.id },
         data: {
           payed: input.payed,
           weight: input.weight,
         },
       });
+
+      await pusherServerClient.trigger(
+        `room-${participant.roomId}`,
+        "participant-updated",
+        {
+          participantId: participant.id,
+        },
+      );
+
+      return res;
     }),
 
   deleteParticipant: protectedProcedure
@@ -129,9 +150,19 @@ export const participantRouter = createTRPCRouter({
         );
       }
 
-      return ctx.db.participant.delete({
+      const res = await ctx.db.participant.delete({
         where: { id: input.id },
       });
+
+      await pusherServerClient.trigger(
+        `room-${participant.roomId}`,
+        "participant-deleted",
+        {
+          participantId: participant.id,
+        },
+      );
+
+      return res;
     }),
 
   removeParticipantFromRoom: protectedProcedure
@@ -157,8 +188,18 @@ export const participantRouter = createTRPCRouter({
         );
       }
 
-      return ctx.db.participant.delete({
+      const res = await ctx.db.participant.delete({
         where: { id: input.participantId },
       });
+
+      await pusherServerClient.trigger(
+        `room-${input.roomId}`,
+        "participant-deleted",
+        {
+          participantId: participant.id,
+        },
+      );
+
+      return res;
     }),
 });
