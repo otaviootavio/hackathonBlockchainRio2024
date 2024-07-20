@@ -46,7 +46,6 @@ export default async function handler(
     const input = webhookPayloadSchema.parse(req.body);
 
     // Log the webhook payload for debugging purposes
-    console.log("Received webhook payload:", input);
 
     // Find the corresponding webhook event
     const webhookEvent = await db.webhookEvent.findUnique({

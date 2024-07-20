@@ -131,7 +131,6 @@ export const xamanRouter = createTRPCRouter({
 
       try {
         const response = await axios(url, options);
-        console.log(response.data);
         const parsedResponse = paymentStatusResponseSchema.parse(response.data);
 
         return {
