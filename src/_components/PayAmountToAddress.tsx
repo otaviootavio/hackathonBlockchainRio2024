@@ -28,16 +28,18 @@ const PayAmountToAddress = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // ammount in xrp
-    const amountXrp = 100000 * parseInt(amount);
 
-    const res = await createPayment(amountXrp.toString(), address);
+    const amountXrp = Math.round(1000000 * parseFloat(amount));
+
+    const res = await createPayment(roomId, amountXrp.toString(), address);
+
     await createWebhookEvent.mutateAsync({
       payloadId: res?.uuid ?? "",
       referenceId: res?.uuid ?? "",
       userId: session.data?.user?.id ?? "",
       roomId: roomId,
     });
+
     setRes(res);
   };
 

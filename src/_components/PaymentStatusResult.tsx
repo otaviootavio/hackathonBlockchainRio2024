@@ -1,5 +1,6 @@
 import Link from "next/link";
 import React from "react";
+import { useSubscribeToEvent } from "~/_hooks";
 import { api } from "~/utils/api";
 
 interface PaymentStatusResultProps {
@@ -7,8 +8,18 @@ interface PaymentStatusResultProps {
 }
 
 const PaymentStatusResult: React.FC<PaymentStatusResultProps> = ({ uuid }) => {
-  const { data, error, isLoading } = api.xaman.getPaymentStatus.useQuery({
-    uuid,
+  const { data, error, isLoading, refetch } =
+    api.xaman.getPaymentStatus.useQuery({
+      uuid,
+    });
+
+  // TODO
+  // Even tho it is working, looks like it breaks the pattern
+  // All other event subscriptions are on [id].tsx
+  // We should think about how to refactor this
+
+  useSubscribeToEvent("participant-payed", () => {
+    refetch().catch(console.error);
   });
 
   if (isLoading) {

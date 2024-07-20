@@ -64,52 +64,39 @@ export function Room() {
   const setreadyForSettlement = api.room.setReadyForSettlement.useMutation();
   const settleRoom = api.room.settleRoom.useMutation();
 
-  // useSubscribeToEvent("room-opened", () => {
-  //   console.log("Room has been opened.");
-  // });
-
   useSubscribeToEvent("room-closed", () => {
-    console.log("Room has been opened.");
     room.refetch().catch(console.error);
   });
 
   useSubscribeToEvent("room-created", () => {
-    console.log("Room has been created.");
     room.refetch().catch(console.error);
   });
 
   useSubscribeToEvent("room-updated", () => {
-    console.log("Room has been updated.");
     room.refetch().catch(console.error);
   });
 
-  // useSubscribeToEvent("room-deleted", async() => {
-  //   console.log("Room has been deleted.");
-  //   await room.refetch();
-  // });
-
   useSubscribeToEvent("room-ready-for-settlement", () => {
-    console.log("Room is ready for settlement.");
     room.refetch().catch(console.error);
   });
 
   useSubscribeToEvent("room-settled", () => {
-    console.log("Room has been settled.");
     room.refetch().catch(console.error);
   });
 
   useSubscribeToEvent("participant-added", () => {
-    console.log("Participant has been added.");
     room.refetch().catch(console.error);
   });
 
   useSubscribeToEvent("participant-updated", () => {
-    console.log("Participant has been updated.");
     room.refetch().catch(console.error);
   });
 
   useSubscribeToEvent("participant-deleted", () => {
-    console.log("Participant has been deleted.");
+    room.refetch().catch(console.error);
+  });
+
+  useSubscribeToEvent("participant-payed", () => {
     room.refetch().catch(console.error);
   });
 
