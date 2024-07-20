@@ -174,7 +174,6 @@ export function ParticipantItem({
   });
 
   useSubscribeToEvent("participant-payed", () => {
-    console.log("Participant has been payed.");
     refetch().catch(console.error);
   });
 

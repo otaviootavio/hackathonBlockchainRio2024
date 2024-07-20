@@ -19,7 +19,6 @@ const PaymentStatusResult: React.FC<PaymentStatusResultProps> = ({ uuid }) => {
   // We should think about how to refactor this
 
   useSubscribeToEvent("participant-payed", () => {
-    console.log("Participant has been payed.");
     refetch().catch(console.error);
   });
 
