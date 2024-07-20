@@ -7,6 +7,7 @@ export const useCreatePayment = () => {
   const [loading, setLoading] = useState(false);
 
   const createPayment = async (
+    roomId: string,
     amount: string,
     destination: string,
     destinationTag?: string,
@@ -16,6 +17,7 @@ export const useCreatePayment = () => {
     setError(null);
     try {
       const res = await mutation.mutateAsync({
+        roomId,
         amount,
         destination,
         destinationTag,

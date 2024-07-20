@@ -1,6 +1,7 @@
 import { type NextApiRequest, type NextApiResponse } from "next";
 import { z } from "zod";
 import { db } from "~/server/db";
+import { pusherServerClient } from "~/server/pusher";
 
 const webhookPayloadSchema = z.object({
   meta: z.object({
@@ -66,6 +67,10 @@ export default async function handler(
       },
     });
 
+    if (!input.payloadResponse.signed) {
+      return res.status(400).json({ error: "Payment not signed." });
+    }
+
     if (!updatedWebhookEvent) {
       return res.status(404).json({ error: "Webhook event not found." });
     }
@@ -85,6 +90,13 @@ export default async function handler(
       },
       data: { payed: true },
     });
+    await pusherServerClient.trigger(
+      `room-${updatedWebhookEvent.roomId}`,
+      `participant-payed`,
+      {
+        participantId: updatedWebhookEvent.userId,
+      },
+    );
 
     return res.status(200).json({ status: "success", updatedWebhookEvent });
   } catch (e) {

@@ -30,10 +30,11 @@ Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/ver
 
 ## Todos
 
-- What happens if the owner deletes?
+- What happens if the owner deletes the room?
   -- While participants are still paying, the owner can't delete the room
   -- While there are users viewing the room
 - What happens to the user if the owner removes them from the room?
-- The user stills can see the detele button in the Rooms page
+- The user stills can see the detele button in the Rooms page even tho it is not their room
 - Even tho the user has not joined the room, they can still listen to the events
 - Loading pages are weird
+- When the user pays, then exists the page, then join back, the appears as no payed but still has view transaction on block explorer

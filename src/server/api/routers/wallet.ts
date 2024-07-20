@@ -8,6 +8,7 @@ import axios from "axios";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
 import { db } from "~/server/db";
+import getUrl from "~/utils/getUrl";
 
 const XUMM_API_KEY = env.XUMM_API_KEY;
 const XUMM_API_SECRET = env.XUMM_API_SECRET;
@@ -39,6 +40,7 @@ export const xamanRouter = createTRPCRouter({
   createPaymentRequest: protectedProcedure
     .input(
       z.object({
+        roomId: z.string(),
         amount: z.string().min(1),
         destination: z.string().min(1),
         destinationTag: z.string().optional(),
@@ -63,6 +65,12 @@ export const xamanRouter = createTRPCRouter({
               },
             ],
           }),
+        },
+        options: {
+          return_url: {
+            app: getUrl(`/room/${input.roomId}`),
+            web: getUrl(`/room/${input.roomId}`),
+          },
         },
       };
 

@@ -5,6 +5,7 @@ import { MdOutlinePlaylistRemove } from "react-icons/md";
 import { TbCashBanknoteOff, TbCashBanknote } from "react-icons/tb";
 import PayAmountToAddress from "./PayAmountToAddress";
 import PaymentStatusResult from "./PaymentStatusResult";
+import { useSubscribeToEvent } from "~/_hooks";
 
 const PaymentStatusTag = ({ payed }: { payed: boolean }) => (
   <div
@@ -166,9 +167,15 @@ export function ParticipantItem({
     data: webhookEvents,
     isLoading,
     error,
+    refetch,
   } = api.xaman.getSuccessfulWebhookEvents.useQuery({
     userId: userId,
     roomId: participant.roomId ?? "",
+  });
+
+  useSubscribeToEvent("participant-payed", () => {
+    console.log("Participant has been payed.");
+    refetch().catch(console.error);
   });
 
   // Determine if there are no payments confirmed yet

@@ -113,6 +113,11 @@ export function Room() {
     room.refetch().catch(console.error);
   });
 
+  useSubscribeToEvent("participant-payed", () => {
+    console.log("Participant has been payed.");
+    room.refetch().catch(console.error);
+  });
+
   const handleSetReadyForSettlement = async () => {
     await setreadyForSettlement.mutateAsync({
       id: roomId,
