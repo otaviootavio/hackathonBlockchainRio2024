@@ -5,6 +5,7 @@ import { MdOutlinePlaylistRemove } from "react-icons/md";
 import { TbCashBanknoteOff, TbCashBanknote } from "react-icons/tb";
 import PayAmountToAddress from "./PayAmountToAddress";
 import PaymentStatusResult from "./PaymentStatusResult";
+import { useRoomContext } from "~/_context/pusher/room/RoomContext";
 import { useSubscribeToEvent } from "~/_hooks";
 
 const PaymentStatusTag = ({ payed }: { payed: boolean }) => (
@@ -25,26 +26,23 @@ const PaymentStatusTag = ({ payed }: { payed: boolean }) => (
   </div>
 );
 
-const RemoveButton = ({
-  removeParticipant,
-  participantId,
-}: {
-  removeParticipant: (participantId: string) => void;
-  participantId: string;
-}) => (
-  <button
-    onClick={() => removeParticipant(participantId)}
-    type="button"
-    className="inline-flex w-28 items-center justify-center rounded bg-red-500 p-1 px-2 text-xs font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-1 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
-  >
-    <MdOutlinePlaylistRemove className="mr-1" />
-    Remove
-  </button>
-);
+const RemoveButton = ({ participantId }: { participantId: string }) => {
+  const { removeParticipant } = useRoomContext();
+
+  return (
+    <button
+      onClick={() => removeParticipant(participantId)}
+      type="button"
+      className="inline-flex w-28 items-center justify-center rounded bg-red-500 p-1 px-2 text-xs font-medium text-white hover:bg-red-800 focus:outline-none focus:ring-1 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
+    >
+      <MdOutlinePlaylistRemove className="mr-1" />
+      Remove
+    </button>
+  );
+};
 
 const ParticipantActions = ({
   canRemoveThisParticipant,
-  removeParticipant,
   participantId,
   ownerAddress,
   isThisParticipantUser,
@@ -54,7 +52,6 @@ const ParticipantActions = ({
   payed,
 }: {
   canRemoveThisParticipant: boolean;
-  removeParticipant: (participantId: string) => void;
   participantId: string;
   ownerAddress: string;
   isThisParticipantUser: boolean;
@@ -64,12 +61,7 @@ const ParticipantActions = ({
   payed: boolean;
 }) => (
   <div className="flex flex-col justify-start space-y-2 md:flex-row md:space-x-2 md:space-y-0">
-    {canRemoveThisParticipant && (
-      <RemoveButton
-        removeParticipant={removeParticipant}
-        participantId={participantId}
-      />
-    )}
+    {canRemoveThisParticipant && <RemoveButton participantId={participantId} />}
     {isThisParticipantUser &&
       isReadyForSettlement &&
       noPaymentsConfirmed &&
@@ -78,47 +70,48 @@ const ParticipantActions = ({
 );
 
 const WeightAdjuster = ({
+  participantId,
   weight,
-  handleWeightChange,
   canUserEditThisParticipantWeight,
 }: {
+  participantId: string;
   weight: number;
-  handleWeightChange: (newWeight: number) => void;
   canUserEditThisParticipantWeight: boolean;
-}) => (
-  <div className="flex w-24  items-center justify-end">
-    {canUserEditThisParticipantWeight && (
-      <>
-        <button
-          onClick={() => handleWeightChange(weight - 1)}
-          type="button"
-          className="me-2 rounded-full bg-gray-300 p-1 px-2 text-xs font-medium hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300"
-          disabled={weight <= 1}
-        >
-          -
-        </button>
-        <button
-          onClick={() => handleWeightChange(weight + 1)}
-          type="button"
-          className="me-2 rounded-full bg-gray-300 p-1 px-2 text-xs font-medium hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300"
-        >
-          +
-        </button>
-      </>
-    )}
-    {weight} <LiaPizzaSliceSolid />
-  </div>
-);
+}) => {
+  const { handleWeightChange } = useRoomContext();
+  return (
+    <div className="flex w-24  items-center justify-end">
+      {canUserEditThisParticipantWeight && (
+        <>
+          <button
+            onClick={() => handleWeightChange(weight - 1, participantId)}
+            type="button"
+            className="me-2 rounded-full bg-gray-300 p-1 px-2 text-xs font-medium hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300"
+            disabled={weight <= 1}
+          >
+            -
+          </button>
+          <button
+            onClick={() => handleWeightChange(weight + 1, participantId)}
+            type="button"
+            className="me-2 rounded-full bg-gray-300 p-1 px-2 text-xs font-medium hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300"
+          >
+            +
+          </button>
+        </>
+      )}
+      {weight} <LiaPizzaSliceSolid />
+    </div>
+  );
+};
 
 export function ParticipantItem({
   ownerAddress,
   participant,
-  removeParticipant,
   isUserOwner,
   room,
   totalPrice,
   totalWeight,
-  participantsRefetch,
 }: {
   participant: {
     userParticipantId: string;
@@ -134,14 +127,11 @@ export function ParticipantItem({
     isReadyForSettlement: boolean;
     hasSettled: boolean;
   };
-  participantsRefetch: () => void;
   totalWeight: number;
   totalPrice: number;
   isUserOwner: boolean;
-  removeParticipant: (participantId: string) => void;
 }) {
   const session = useSession();
-  const updateParticipant = api.participant.updateParticipant.useMutation();
   const { weight, payed, userId, userParticipantId, name } = participant;
   const isThisParticipantUser = userId === session.data?.user?.id;
   const canUserEditThisParticipantWeight =
@@ -151,16 +141,6 @@ export function ParticipantItem({
   const canRemoveThisParticipant = isUserOwner && !isThisParticipantUser;
   const isParticipantOwner = participant.role === "owner";
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
-
-  const handleWeightChange = async (newWeight: number) => {
-    if (newWeight > 0) {
-      await updateParticipant.mutateAsync({
-        id: userParticipantId,
-        weight: newWeight,
-      });
-      participantsRefetch();
-    }
-  };
 
   // Fetch successful webhook events for the user
   const {
@@ -173,6 +153,10 @@ export function ParticipantItem({
     roomId: participant.roomId ?? "",
   });
 
+  // TODO
+  // Even tho it is working, looks like it breaks the pattern
+  // All other event subscriptions are on [id].tsx
+  // We should think about how to refactor this
   useSubscribeToEvent("participant-payed", () => {
     refetch().catch(console.error);
   });
@@ -191,7 +175,6 @@ export function ParticipantItem({
         {isParticipantOwner && <>Owner!</>}
         <ParticipantActions
           canRemoveThisParticipant={canRemoveThisParticipant}
-          removeParticipant={removeParticipant}
           participantId={userParticipantId}
           ownerAddress={ownerAddress}
           amount={amount}
@@ -218,8 +201,8 @@ export function ParticipantItem({
       </div>
       <div className="self-center p-2 text-right">{amount}</div>
       <WeightAdjuster
+        participantId={participant.userParticipantId}
         weight={weight}
-        handleWeightChange={handleWeightChange}
         canUserEditThisParticipantWeight={canUserEditThisParticipantWeight}
       />
     </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import { useRoomContext } from "~/_context/pusher/room/RoomContext";
 
 interface RoomStatusProps {
   room: {
@@ -6,8 +7,6 @@ interface RoomStatusProps {
     isReadyForSettlement: boolean;
     hasSettled: boolean;
   };
-  handleSettleRoom: () => void;
-  handleSetReadyForSettlement: () => void;
   hasEveryonePayed: boolean;
   isUserOwner: boolean;
 }
@@ -15,20 +14,18 @@ interface RoomStatusProps {
 const RenderButton = ({
   isUserOwner,
   room,
-  handleSettleRoom,
-  handleSetReadyForSettlement,
   hasEveryonePayed,
 }: {
   hasEveryonePayed: boolean;
-  handleSetReadyForSettlement: () => void;
   isUserOwner: boolean;
   room: {
     isOpen: boolean;
     isReadyForSettlement: boolean;
     hasSettled: boolean;
   };
-  handleSettleRoom: () => void;
 }) => {
+  const { handleSetReadyForSettlement, handleSettleRoom } = useRoomContext();
+
   if (!isUserOwner) {
     return <></>;
   }
@@ -64,8 +61,6 @@ const RenderButton = ({
 
 const RoomStatus: React.FC<RoomStatusProps> = ({
   room,
-  handleSettleRoom,
-  handleSetReadyForSettlement,
   hasEveryonePayed,
   isUserOwner,
 }) => {
@@ -99,8 +94,6 @@ const RoomStatus: React.FC<RoomStatusProps> = ({
               {...{
                 isUserOwner,
                 room,
-                handleSettleRoom,
-                handleSetReadyForSettlement,
                 hasEveryonePayed,
               }}
             />

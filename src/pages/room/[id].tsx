@@ -1,15 +1,15 @@
 import { useRouter } from "next/router";
-import { api } from "~/utils/api";
-import { useSession } from "next-auth/react";
-
-import { type GetSessionParams, getSession } from "next-auth/react";
+import { getSession, type GetSessionParams, useSession } from "next-auth/react";
 import { RoomHeader } from "~/_components/RoomHeader";
 import { ParticipantsList } from "~/_components/ParticipantsList";
 import { RoomJoin } from "~/_components/RoomJoin";
-import { db } from "~/server/db";
 import RoomStatus from "~/_components/RoomStatus";
 import { PusherProvider } from "~/_context/pusher/PusherProvider";
-import { useSubscribeToEvent } from "~/_hooks";
+import {
+  RoomProvider,
+  useRoomContext,
+} from "~/_context/pusher/room/RoomContext";
+import { db } from "~/server/db";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -45,92 +45,17 @@ export async function getServerSideProps(
 
 export function Room() {
   const router = useRouter();
-  const roomId = router.query.id as string;
-  const room = api.room.getRoomById.useQuery({ id: roomId });
-  const session = useSession();
-  const hasEveryonePayed =
-    room.data?.participants.every((p: { payed: boolean }) => p.payed) ?? false;
-  const addParticipant = api.participant.addParticipant.useMutation();
-  const removeParticipantFromRoom =
-    api.participant.removeParticipantFromRoom.useMutation();
-  const openRoom = api.room.openRoom.useMutation();
-  const closeRoom = api.room.closeRoom.useMutation();
-  const { data: userProfile } = api.userProfile.getUserProfileByUserId.useQuery(
-    {
-      userId: session.data?.user?.id ?? "",
-    },
-  );
+  const { data: session } = useSession();
+  const {
+    roomData,
+    isRoomLoading,
+    isUserOwner,
+    isUserParticipant,
+    hasEveryonePayed,
+    joinRoom,
+  } = useRoomContext();
 
-  const setreadyForSettlement = api.room.setReadyForSettlement.useMutation();
-  const settleRoom = api.room.settleRoom.useMutation();
-
-  useSubscribeToEvent("room-closed", () => {
-    room.refetch().catch(console.error);
-  });
-
-  useSubscribeToEvent("room-created", () => {
-    room.refetch().catch(console.error);
-  });
-
-  useSubscribeToEvent("room-updated", () => {
-    room.refetch().catch(console.error);
-  });
-
-  useSubscribeToEvent("room-ready-for-settlement", () => {
-    room.refetch().catch(console.error);
-  });
-
-  useSubscribeToEvent("room-settled", () => {
-    room.refetch().catch(console.error);
-  });
-
-  useSubscribeToEvent("participant-added", () => {
-    room.refetch().catch(console.error);
-  });
-
-  useSubscribeToEvent("participant-updated", () => {
-    room.refetch().catch(console.error);
-  });
-
-  useSubscribeToEvent("participant-deleted", () => {
-    room.refetch().catch(console.error);
-  });
-
-  useSubscribeToEvent("participant-payed", () => {
-    room.refetch().catch(console.error);
-  });
-
-  const handleSetReadyForSettlement = async () => {
-    await setreadyForSettlement.mutateAsync({
-      id: roomId,
-      userId: session.data?.user?.id ?? "",
-    });
-    await room.refetch();
-    return;
-  };
-
-  const handleSetteleRoom = async () => {
-    if (hasEveryonePayed) {
-      await settleRoom.mutateAsync({
-        id: roomId,
-        userId: session.data?.user?.id ?? "",
-      });
-      await room.refetch();
-    }
-  };
-
-  const isUserOwner =
-    room.data?.participants?.some(
-      (p: { role: string; userId: string }) =>
-        p.role === "owner" && p.userId === session.data?.user.id,
-    ) ?? false;
-  const isUserParticipant =
-    room.data?.participants.some(
-      (p: { userId: string | undefined }) =>
-        p.userId === session.data?.user?.id,
-    ) ?? false;
-
-  if (room.isLoading) {
+  if (isRoomLoading) {
     return (
       <div className="flex h-screen flex-col items-center bg-blue-200">
         <div className="min-w-96 gap-4">
@@ -142,53 +67,16 @@ export function Room() {
     );
   }
 
-  if (!session.data?.user?.name) {
+  if (!session?.user?.name) {
     return <div>Please sign in to join the room</div>;
   }
 
-  if (!room.data) {
+  if (!roomData) {
     return <div>Room not found</div>;
   }
 
-  const joinRoom = async () => {
-    await addParticipant.mutateAsync({
-      roomId: roomId,
-      profileId: userProfile?.id ?? "",
-      userId: session.data?.user?.id ?? "",
-      name: session.data.user?.name ?? "",
-      payed: false,
-    });
-
-    await room.refetch();
-  };
-
-  const handleDeleteParticipant = async (participantId: string) => {
-    await removeParticipantFromRoom.mutateAsync({
-      userId: session.data?.user?.id ?? "",
-      roomId,
-      participantId,
-    });
-    await room.refetch();
-  };
-
-  const handleOpenRoom = async () => {
-    await openRoom.mutateAsync({
-      id: roomId,
-      userId: session.data?.user?.id ?? "",
-    });
-    await room.refetch();
-  };
-
-  const handleCloseRoom = async () => {
-    await closeRoom.mutateAsync({
-      id: roomId,
-      userId: session.data?.user?.id ?? "",
-    });
-    await room.refetch();
-  };
-
-  const userParticipantData = room.data.participants.find(
-    (p: { userId: string }) => p.userId === session.data?.user?.id,
+  const userParticipantData = roomData.participants.find(
+    (p: { userId: string }) => p.userId === session.user.id,
   );
 
   if (!isUserParticipant) {
@@ -196,7 +84,7 @@ export function Room() {
       <div className="flex h-screen flex-col items-center bg-blue-200">
         <div className="min-w-96">
           <div className="rounded-lg border-2 bg-white p-4">
-            <RoomJoin room={room.data} joinRoom={joinRoom} />
+            <RoomJoin room={roomData} joinRoom={joinRoom} />
           </div>
         </div>
       </div>
@@ -211,28 +99,21 @@ export function Room() {
     <>
       <RoomStatus
         isUserOwner={isUserOwner}
-        room={room.data}
-        handleSettleRoom={handleSetteleRoom}
-        handleSetReadyForSettlement={handleSetReadyForSettlement}
+        room={roomData}
         hasEveryonePayed={hasEveryonePayed}
       />
       <RoomHeader
-        room={room.data}
+        room={roomData}
         onBack={() => router.push("/rooms")}
         isUserOwner={isUserOwner}
         userParticipantData={userParticipantData}
-        handleOpenRoom={handleOpenRoom}
-        handleCloseRoom={handleCloseRoom}
-        removeParticipant={handleDeleteParticipant}
       />
       <ParticipantsList
-        room={room.data}
-        participantsRefetch={room.refetch}
+        room={roomData}
         isUserOwner={isUserOwner}
-        participants={room.data.participants}
-        isLoading={room.isLoading}
-        handleDeleteParticipant={handleDeleteParticipant}
-        totalPrice={room.data.totalPrice}
+        participants={roomData.participants}
+        isLoading={isRoomLoading}
+        totalPrice={roomData.totalPrice}
       />
     </>
   );
@@ -255,7 +136,9 @@ export default function Page() {
         userInfo={{ name: session.user.name ?? "" }}
         userId={session.user.id}
       >
-        <Room />
+        <RoomProvider>
+          <Room />
+        </RoomProvider>
       </PusherProvider>
     );
   }

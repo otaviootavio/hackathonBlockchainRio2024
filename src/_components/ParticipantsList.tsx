@@ -4,10 +4,8 @@ import { ParticipantItem } from "./ParticipantItem";
 export const ParticipantsList = ({
   participants,
   isLoading,
-  handleDeleteParticipant,
   isUserOwner,
   totalPrice,
-  participantsRefetch,
   room,
 }: {
   participants: {
@@ -28,8 +26,6 @@ export const ParticipantsList = ({
     totalPrice: number;
   };
   isLoading: boolean;
-  participantsRefetch: () => void;
-  handleDeleteParticipant: (participantId: string) => void;
   isUserOwner: boolean;
   totalPrice: number;
 }) => {
@@ -50,13 +46,11 @@ export const ParticipantsList = ({
               room={room}
               isUserOwner={isUserOwner}
               participant={participant}
-              removeParticipant={handleDeleteParticipant}
               totalPrice={totalPrice}
               totalWeight={participants.reduce(
                 (acc, curr) => acc + curr.weight,
                 0,
               )}
-              participantsRefetch={participantsRefetch}
             />
           </div>
         ))

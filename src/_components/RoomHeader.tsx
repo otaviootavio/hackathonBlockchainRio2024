@@ -23,9 +23,6 @@ interface RoomHeaderProps {
   room: Room;
   onBack: () => void;
   isUserOwner: boolean;
-  handleOpenRoom: () => void;
-  handleCloseRoom: () => void;
-  removeParticipant: (participantId: string) => void;
   userParticipantData: {
     payed: boolean;
     role: string;
@@ -41,9 +38,6 @@ interface RoomHeaderProps {
 export const RoomHeader: React.FC<RoomHeaderProps> = ({
   room,
   isUserOwner,
-  handleOpenRoom,
-  handleCloseRoom,
-  removeParticipant,
   userParticipantData,
 }) => {
   const owner = room?.participants?.find((p) => p.role === "owner");
@@ -59,16 +53,9 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
           </div>
           <div>
             {isUserOwner ? (
-              <RoomOpenAndClose
-                isOpen={isOpen}
-                handleOpenRoom={handleOpenRoom}
-                handleCloseRoom={handleCloseRoom}
-              />
+              <RoomOpenAndClose isOpen={isOpen} />
             ) : (
-              <RoomLeave
-                removeParticipant={removeParticipant}
-                userParticipantData={userParticipantData}
-              />
+              <RoomLeave userParticipantData={userParticipantData} />
             )}
           </div>
         </div>
