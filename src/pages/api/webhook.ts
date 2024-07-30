@@ -2,6 +2,9 @@ import { type NextApiRequest, type NextApiResponse } from "next";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { pusherServerClient } from "~/server/pusher";
+// TODO
+// Uncomment this when on mainnet
+// import { TxData } from "xrpl-txdata";
 
 const webhookPayloadSchema = z.object({
   meta: z.object({
@@ -45,18 +48,21 @@ export default async function handler(
   try {
     const input = webhookPayloadSchema.parse(req.body);
 
-    // Log the webhook payload for debugging purposes
-
-    // Find the corresponding webhook event
+    // Fetch the payload
+    // The payload is created by the User and stored in the database
     const webhookEvent = await db.webhookEvent.findUnique({
       where: { payloadId: input.payloadResponse.payload_uuidv4 },
     });
 
+    // If the payload is not found, return an error
     if (!webhookEvent) {
+      console.error(
+        "Webhook event not found:",
+        input.payloadResponse.payload_uuidv4,
+      );
       return res.status(404).json({ error: "Webhook event not found." });
     }
 
-    // Update the webhook event with the received information
     const updatedWebhookEvent = await db.webhookEvent.update({
       where: { payloadId: input.payloadResponse.payload_uuidv4 },
       data: {
@@ -66,21 +72,74 @@ export default async function handler(
       },
     });
 
-    if (!input.payloadResponse.signed) {
+    if (input.payloadResponse.signed === false) {
+      console.warn("Payment not signed:", input.payloadResponse.payload_uuidv4);
       return res.status(400).json({ error: "Payment not signed." });
     }
 
     if (!updatedWebhookEvent) {
+      console.error(
+        "Failed to update webhook event:",
+        input.payloadResponse.payload_uuidv4,
+      );
       return res.status(404).json({ error: "Webhook event not found." });
     }
 
     if (!updatedWebhookEvent.userId) {
-      return res.status(404).json({ error: "User  not found." });
+      console.error(
+        "User not found for event:",
+        input.payloadResponse.payload_uuidv4,
+      );
+      return res.status(404).json({ error: "User not found." });
     }
 
     if (!updatedWebhookEvent.roomId) {
+      console.error(
+        "Room not found for event:",
+        input.payloadResponse.payload_uuidv4,
+      );
       return res.status(404).json({ error: "Room not found." });
     }
+
+    // TODO
+    // Uncomment this when on mainnet
+    // // Fetch Transaction Details and Check Delivered Amount
+    // const verifyTx = new TxData(["wss://xrplcluster.com", "wss://xrpl.link"], {
+    //   OverallTimeoutMs: 6000,
+    //   EndpointTimeoutMs: 1500,
+    // });
+
+    // if (!input.payloadResponse.txid) {
+    //   return res.status(400).json({ error: "No transaction ID provided." });
+    // }
+
+    // const transaction = await verifyTx.getOne(input.payloadResponse.txid, 20);
+
+    // verifyTx.end();
+
+    // const errorSchema = z.object({
+    //   error: z.string(),
+    //   error_code: z.number(),
+    // });
+
+    // if (transaction.result.error) {
+    //   const errorMessage = (() => {
+    //     try {
+    //       // Parse and validate the error using zod schema
+    //       const parsedError = errorSchema.parse(transaction.result.error);
+    //       return parsedError.error_code;
+    //     } catch (e) {
+    //       // If parsing fails, fall back to a string representation of the error
+    //       return typeof transaction.result.error === "object"
+    //         ? JSON.stringify(transaction.result.error)
+    //         : String(transaction.result.error);
+    //     }
+    //   })();
+
+    //   return res.status(400).json({
+    //     error: `Transaction failed: ${errorMessage}`,
+    //   });
+    // }
 
     await db.participant.updateMany({
       where: {
@@ -97,9 +156,18 @@ export default async function handler(
       },
     );
 
+    console.log(
+      "Webhook handled successfully for event:",
+      input.payloadResponse.payload_uuidv4,
+    );
     return res.status(200).json({ status: "success", updatedWebhookEvent });
   } catch (e) {
     console.error("Failed to handle webhook:", e);
+    if (e instanceof z.ZodError) {
+      return res
+        .status(400)
+        .json({ error: "Invalid payload.", details: e.errors });
+    }
     return res.status(500).json({ error: "Failed to handle webhook." });
   }
 }
