@@ -7,6 +7,8 @@ const UserProfileCreate = ({
 }) => {
   const [name, setName] = useState("");
   const [wallet, setWallet] = useState("");
+  // TODO
+  // Handle errors
 
   return (
     <form

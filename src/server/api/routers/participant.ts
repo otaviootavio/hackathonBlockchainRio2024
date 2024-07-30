@@ -14,17 +14,13 @@ export const participantRouter = createTRPCRouter({
         userId: z.string(),
         name: z.string().min(1),
         payed: z.boolean(),
-        userProfileId: z.string(),
+        profileId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const room = await ctx.db.room.findUnique({
+      const room = await ctx.db.room.findUniqueOrThrow({
         where: { id: input.roomId },
       });
-
-      if (!room) {
-        throw new Error("Room not found");
-      }
 
       if (!room.isOpen) {
         const isOwner = await ctx.db.participant.findFirst({
@@ -44,7 +40,7 @@ export const participantRouter = createTRPCRouter({
 
       const participant = await ctx.db.participant.create({
         data: {
-          userProfileId: input.userProfileId,
+          profileId: input.profileId,
           roomId: input.roomId,
           userId: input.userId,
           payed: input.payed,
@@ -82,13 +78,9 @@ export const participantRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const participant = await ctx.db.participant.findUnique({
+      const participant = await ctx.db.participant.findUniqueOrThrow({
         where: { id: input.id },
       });
-
-      if (!participant) {
-        throw new Error("Participant not found");
-      }
 
       const room = await ctx.db.room.findUnique({
         where: { id: participant.roomId },
@@ -136,13 +128,9 @@ export const participantRouter = createTRPCRouter({
   deleteParticipant: protectedProcedure
     .input(z.object({ id: z.string(), userId: z.string(), roomId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const participant = await ctx.db.participant.findFirst({
+      const participant = await ctx.db.participant.findUniqueOrThrow({
         where: { id: input.id },
       });
-
-      if (!participant) {
-        throw new Error("Participant not found");
-      }
 
       if (participant.role === "owner") {
         throw new Error(
@@ -174,13 +162,9 @@ export const participantRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const participant = await ctx.db.participant.findFirst({
+      const participant = await ctx.db.participant.findFirstOrThrow({
         where: { id: input.participantId, roomId: input.roomId },
       });
-
-      if (!participant) {
-        throw new Error("Participant not found");
-      }
 
       if (participant.role === "owner") {
         throw new Error(

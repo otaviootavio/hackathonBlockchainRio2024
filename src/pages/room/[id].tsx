@@ -153,7 +153,7 @@ export function Room() {
   const joinRoom = async () => {
     await addParticipant.mutateAsync({
       roomId: roomId,
-      userProfileId: userProfile?.id ?? "",
+      profileId: userProfile?.id ?? "",
       userId: session.data?.user?.id ?? "",
       name: session.data.user?.name ?? "",
       payed: false,

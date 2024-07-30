@@ -56,7 +56,7 @@ export default function NewRoom() {
         participantName: userProfile.data?.name ?? "",
         participantPayed: participantPayed,
         userId: session.data?.user?.id ?? "",
-        userProfileId: userProfile.data?.id ?? "",
+        profileId: userProfile.data?.id ?? "",
       })
       .then(async () => {
         await router.push("/rooms");

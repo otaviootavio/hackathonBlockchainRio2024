@@ -1,4 +1,3 @@
-import { postRouter } from "~/server/api/routers/post";
 import { createCallerFactory, createTRPCRouter } from "~/server/api/trpc";
 import { userProfileRouter } from "./routers/profile";
 import { participantRouter } from "./routers/participant";
@@ -12,7 +11,6 @@ import { xamanRouter } from "./routers/wallet";
  */
 export const appRouter = createTRPCRouter({
   xaman: xamanRouter,
-  post: postRouter,
   room: roomRouter,
   participant: participantRouter,
   userProfile: userProfileRouter,
