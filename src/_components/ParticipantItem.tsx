@@ -5,7 +5,7 @@ import { MdOutlinePlaylistRemove } from "react-icons/md";
 import { TbCashBanknoteOff, TbCashBanknote } from "react-icons/tb";
 import PayAmountToAddress from "./PayAmountToAddress";
 import PaymentStatusResult from "./PaymentStatusResult";
-import { useRoomContext } from "~/_context/pusher/room/RoomContext";
+import { useRoomContext } from "~/_context/room/RoomContext";
 import { useSubscribeToEvent } from "~/_hooks";
 
 const PaymentStatusTag = ({ payed }: { payed: boolean }) => (

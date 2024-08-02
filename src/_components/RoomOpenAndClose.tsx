@@ -1,6 +1,6 @@
 import React from "react";
 import { BsFillDoorClosedFill, BsFillDoorOpenFill } from "react-icons/bs";
-import { useRoomContext } from "~/_context/pusher/room/RoomContext";
+import { useRoomContext } from "~/_context/room/RoomContext";
 
 interface RoomOpenAndCloseProps {
   isOpen: boolean;

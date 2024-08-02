@@ -1,4 +1,4 @@
-import { useRoomContext } from "~/_context/pusher/room/RoomContext";
+import { useRoomContext } from "~/_context/room/RoomContext";
 
 export const RoomLeave = ({
   userParticipantData,

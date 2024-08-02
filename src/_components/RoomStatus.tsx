@@ -1,5 +1,5 @@
 import React from "react";
-import { useRoomContext } from "~/_context/pusher/room/RoomContext";
+import { useRoomContext } from "~/_context/room/RoomContext";
 
 interface RoomStatusProps {
   room: {
