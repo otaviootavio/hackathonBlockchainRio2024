@@ -109,10 +109,11 @@ export const roomRouter = createTRPCRouter({
     return ctx.db.room.findMany();
   }),
 
-  getRoomsByUserIdInEachRoom: protectedProcedure
+  getRoomsByUserIdInRoom: protectedProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.room.findMany({
+        orderBy: { createdAt: "desc" },
         where: {
           participants: {
             some: {
@@ -120,6 +121,7 @@ export const roomRouter = createTRPCRouter({
             },
           },
         },
+        include: { participants: true },
       });
     }),
 

@@ -40,12 +40,11 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
   isUserOwner,
   userParticipantData,
 }) => {
-  const owner = room?.participants?.find((p) => p.role === "owner");
   const isOpen = room?.isOpen ?? false;
 
   return (
     <div className="p-2">
-      <div className=" flex flex-col gap-2 rounded-md border border-slate-300 bg-slate-50 p-2">
+      <div className=" flex flex-col gap-1 rounded-md border border-slate-300 bg-slate-50 p-2">
         <div className="flex flex-row items-center justify-between">
           <div>
             <div className="text-xs  text-slate-600">Room Name:</div>
@@ -59,19 +58,11 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
             )}
           </div>
         </div>
-        <div className="mt-2 flex flex-col items-start ">
+        <div className="flex flex-col items-start ">
           <div className="text-xs  text-slate-600">Description:</div>
           <p className="text-lg text-slate-900">{room.description}</p>
         </div>
-        <div className="mt-2 flex flex-col items-start ">
-          <div className="text-xs  text-slate-600">Owner:</div>
-          <div className="text-sm">{owner?.name}</div>
-        </div>
-        <div className="mt-2 flex flex-col items-start ">
-          <div className="text-xs  text-slate-600">Address:</div>
-          <div className="text-wrap break-all text-sm">{owner?.wallet}</div>
-        </div>
-        <div className="mt-2 flex flex-col items-start ">
+        <div className="flex flex-col items-start ">
           <div className="text-xs  text-slate-600">Ammount:</div>
           <div className="text-wrap break-all text-sm">
             {room?.totalPrice} XRP

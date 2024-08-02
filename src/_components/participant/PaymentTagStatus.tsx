@@ -3,7 +3,7 @@ import { TbCashBanknoteOff, TbCashBanknote } from "react-icons/tb";
 const PaymentStatusTag = ({ payed }: { payed: boolean }) => {
   return (
     <div
-      className={`inline-flex w-28 items-center justify-start whitespace-nowrap text-sm font-bold ${payed ? "text-green-500" : "text-red-500"}`}
+      className={`inline-flex  items-center justify-start whitespace-nowrap text-sm font-bold ${payed ? "text-green-500" : "text-red-500"}`}
     >
       {payed ? (
         <>

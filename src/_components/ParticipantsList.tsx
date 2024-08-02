@@ -20,6 +20,7 @@ export const ParticipantsList = ({
     roomId: string;
     userId: string;
     weight: number;
+    createdAt: Date;
   }[];
   room: {
     isOpen: boolean;

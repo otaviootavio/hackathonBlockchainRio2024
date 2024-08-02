@@ -66,6 +66,7 @@ model Room {
     participants         Participant[]
     isReadyForSettlement Boolean       @default(false)
     hasSettled           Boolean       @default(false)
+    createdAt            DateTime      @default(now())
 }
 
 model Participant {
