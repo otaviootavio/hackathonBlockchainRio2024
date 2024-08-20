@@ -1,7 +1,9 @@
+import axios from "axios";
 import { type NextApiRequest, type NextApiResponse } from "next";
 import { z } from "zod";
 import { db } from "~/server/db";
 import { pusherServerClient } from "~/server/pusher";
+
 // TODO
 // Uncomment this when on mainnet
 // import { TxData } from "xrpl-txdata";
@@ -36,6 +38,92 @@ const webhookPayloadSchema = z.object({
   }),
 });
 
+const xummPayloadDetailsSchema = z.object({
+  meta: z.object({
+    exists: z.boolean(),
+    uuid: z.string().uuid(),
+    multisign: z.boolean(),
+    submit: z.boolean(),
+    pathfinding: z.boolean(),
+    pathfinding_fallback: z.boolean(),
+    force_network: z.null(),
+    destination: z.string(),
+    resolved_destination: z.string(),
+    resolved: z.boolean(),
+    signed: z.boolean(),
+    cancelled: z.boolean(),
+    expired: z.boolean(),
+    pushed: z.boolean(),
+    app_opened: z.boolean(),
+    opened_by_deeplink: z.boolean(),
+    return_url_app: z.string().url(),
+    return_url_web: z.string().url(),
+    is_xapp: z.boolean(),
+    signers: z.null(),
+  }),
+  application: z.object({
+    name: z.string(),
+    description: z.string(),
+    disabled: z.number().int(),
+    uuidv4: z.string().uuid(),
+    icon_url: z.string().url(),
+    issued_user_token: z.string().uuid(),
+  }),
+  payload: z.object({
+    tx_type: z.string(),
+    tx_destination: z.string(),
+    tx_destination_tag: z.null(),
+    request_json: z.object({
+      TransactionType: z.string(),
+      Memos: z.array(
+        z.object({
+          Memo: z.object({
+            MemoType: z.string(),
+            MemoData: z.string(),
+          }),
+        }),
+      ),
+      SignIn: z.boolean(),
+    }),
+    origintype: z.string(),
+    signmethod: z.string(),
+    created_at: z.string().datetime(),
+    expires_at: z.string().datetime(),
+    expires_in_seconds: z.number().int(),
+    computed: z.object({
+      Memos: z.array(
+        z.object({
+          Memo: z.object({
+            MemoType: z.string(),
+            MemoData: z.string(),
+          }),
+        }),
+      ),
+    }),
+  }),
+  response: z.object({
+    hex: z.string(),
+    txid: z.string(),
+    resolved_at: z.string().datetime(),
+    dispatched_to: z.string(),
+    dispatched_nodetype: z.string(),
+    dispatched_result: z.string(),
+    dispatched_to_node: z.boolean(),
+    environment_nodeuri: z.string().url(),
+    environment_nodetype: z.string(),
+    multisign_account: z.string(),
+    account: z.string(),
+    signer: z.string(),
+    user: z.string().uuid(),
+    environment_networkid: z.number().int(),
+  }),
+  custom_meta: z.object({
+    identifier: z.null(),
+    blob: z.null(),
+    instruction: z.null(),
+  }),
+});
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -46,6 +134,7 @@ export default async function handler(
   }
 
   try {
+    console.log(JSON.stringify(req.body));
     const input = webhookPayloadSchema.parse(req.body);
 
     // Fetch the payload
@@ -93,14 +182,6 @@ export default async function handler(
       return res.status(404).json({ error: "User not found." });
     }
 
-    if (!updatedWebhookEvent.roomId) {
-      console.error(
-        "Room not found for event:",
-        input.payloadResponse.payload_uuidv4,
-      );
-      return res.status(404).json({ error: "Room not found." });
-    }
-
     // TODO
     // Uncomment this when on mainnet
     // // Fetch Transaction Details and Check Delivered Amount
@@ -140,21 +221,53 @@ export default async function handler(
     //     error: `Transaction failed: ${errorMessage}`,
     //   });
     // }
+    if (updatedWebhookEvent.roomId) {
+      await db.participant.updateMany({
+        where: {
+          userId: updatedWebhookEvent.userId,
+          roomId: updatedWebhookEvent.roomId,
+        },
+        data: { payed: true },
+      });
+      await pusherServerClient.trigger(
+        `room-${updatedWebhookEvent.roomId}`,
+        `participant-payed`,
+        {
+          participantId: updatedWebhookEvent.userId,
+        },
+      );
+    } else {
+      const url = new URL(
+        `/api/v1/platform/payload/${updatedWebhookEvent.payloadId}`,
+        "https://xumm.app",
+      );
 
-    await db.participant.updateMany({
-      where: {
-        userId: updatedWebhookEvent.userId,
-        roomId: updatedWebhookEvent.roomId,
-      },
-      data: { payed: true },
-    });
-    await pusherServerClient.trigger(
-      `room-${updatedWebhookEvent.roomId}`,
-      `participant-payed`,
-      {
-        participantId: updatedWebhookEvent.userId,
-      },
-    );
+      const response = await axios.get(url.toString(), {
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          "X-API-Key": process.env.XUMM_API_KEY,
+          "X-API-Secret": process.env.XUMM_API_SECRET,
+        },
+      });
+
+      xummPayloadDetailsSchema.parse(response.data);
+
+      const paredXummPayloadDetailsSchema = xummPayloadDetailsSchema.parse(
+        response.data,
+      );
+      // parsedResponse.response.environment_networkid;
+      // Now the user has signed on wallet
+      // It means that the user has control over that account
+      // So we can attribuite the wallet to the user
+      const userid = updatedWebhookEvent.userId;
+      const userwallet = paredXummPayloadDetailsSchema.response.account;
+      await db.userProfile.upsert({
+        where: { userId: userid },
+        create: { userId: userid, wallet: userwallet },
+        update: { wallet: userwallet },
+      });
+    }
 
     console.log(
       "Webhook handled successfully for event:",

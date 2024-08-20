@@ -4,15 +4,15 @@ const UserProfileEdit = ({
   profile,
   handleSaveUserProfile,
 }: {
-  profile: { name: string; wallet: string; id: string };
+  profile: { name: string | null; wallet: string | null; id: string };
   handleSaveUserProfile: (profile: {
-    name: string;
-    wallet: string;
+    name: string | null;
+    wallet: string | null;
     id: string;
   }) => void;
 }) => {
-  const [name, setName] = useState(profile.name);
-  const [wallet, setWallet] = useState(profile.wallet);
+  const [name, setName] = useState(profile.name ?? "");
+  const [wallet, setWallet] = useState(profile.wallet ?? "");
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();

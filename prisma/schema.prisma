@@ -22,11 +22,11 @@ model User {
 }
 
 model UserProfile {
-    id     String @id @default(cuid())
-    name   String
-    wallet String @unique
-    userId String @unique
-    user   User   @relation(fields: [userId], references: [id])
+    id     String  @id @default(cuid())
+    name   String?
+    wallet String? @unique
+    userId String  @unique
+    user   User    @relation(fields: [userId], references: [id])
 }
 
 // Necessary for Next auth
@@ -91,14 +91,13 @@ model VerificationToken {
 }
 
 model WebhookEvent {
-    id          String   @id @default(cuid())
-    payloadId   String   @unique
-    referenceId String   @unique
-    signed      Boolean?
-    txid        String?
-    status      String   @default("pending")
-    userId      String?
-    roomId      String?
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    id        String   @id @default(cuid())
+    payloadId String   @unique
+    signed    Boolean?
+    txid      String?
+    status    String   @default("pending")
+    userId    String?
+    roomId    String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

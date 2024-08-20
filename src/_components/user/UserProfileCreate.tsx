@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import CreateSignRequest from "../payment/CreateSignRequest";
 
 const UserProfileCreate = ({
   handleCreateUserProfile,
@@ -47,6 +48,7 @@ const UserProfileCreate = ({
         >
           Create
         </button>
+        <CreateSignRequest />
       </div>
     </form>
   );

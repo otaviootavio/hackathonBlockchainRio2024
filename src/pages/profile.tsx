@@ -41,30 +41,47 @@ function Profile() {
   const createUserProfile = api.userProfile.createUserProfile.useMutation();
 
   const handleCreateUserProfile = async (profile: {
-    name: string;
-    wallet: string;
+    name: string | null;
+    wallet: string | null;
   }) => {
-    await createUserProfile.mutateAsync({
-      userId: session.data?.user?.id ?? "",
-      ...profile,
-    });
-    // redirect to rooms
-    await router.push("/rooms");
+    if (!!profile.name && !!profile.wallet) {
+      const profileNotNull = {
+        name: profile.name,
+        wallet: profile.wallet,
+      };
+      await createUserProfile.mutateAsync({
+        userId: session.data?.user?.id ?? "",
+        ...profileNotNull,
+      });
+      await router.push("/rooms");
+    } else {
+      throw new Error("Name and wallet cannot be empty");
+    }
   };
 
   const edtiUserProfile = api.userProfile.updateUserProfile.useMutation();
 
   const handleSaveUserProfile = async (profile: {
-    name: string;
-    wallet: string;
+    name: string | null;
+    wallet: string | null;
     id: string;
   }) => {
-    await edtiUserProfile.mutateAsync({
-      ...profile,
-    });
-    // refetch profile and tunr edit mode off
-    await refetchProfile();
-    setEditMode(false);
+    if (!!profile.name && !!profile.wallet) {
+      const profileNotNull = {
+        name: profile.name,
+        wallet: profile.wallet,
+      };
+
+      await edtiUserProfile.mutateAsync({
+        id: profile.id,
+        ...profileNotNull,
+      });
+
+      await refetchProfile();
+      setEditMode(false);
+    } else {
+      throw new Error("Name and wallet cannot be empty");
+    }
   };
 
   return (

@@ -65,4 +65,20 @@ export const userProfileRouter = createTRPCRouter({
         where: { id: input.id },
       });
     }),
+
+  addWalletToProfile: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        wallet: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.userProfile.update({
+        where: { id: input.id },
+        data: {
+          wallet: input.wallet,
+        },
+      });
+    }),
 });
