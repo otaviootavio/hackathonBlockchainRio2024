@@ -39,7 +39,7 @@ export default function Home() {
                 className="transform rounded-full bg-gradient-to-r from-green-400 to-blue-500 px-10 py-3 font-semibold text-white transition-transform hover:scale-105"
                 onClick={() => void signIn()}
               >
-                Sign in to get started
+                Sign in!
               </button>
             ) : (
               <button className="rounded-full bg-gradient-to-r from-gray-400 to-gray-600 px-10 py-3 font-semibold text-white">
