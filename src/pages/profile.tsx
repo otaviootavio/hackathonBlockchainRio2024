@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { api } from "~/utils/api";
-import UserProfile from "~/_components/UserProfile";
 import { getSession, type GetSessionParams, useSession } from "next-auth/react";
-import UserProfileCreate from "~/_components/UserProfileCreate";
-import UserProfileEdit from "~/_components/UserProfileEdit";
+
 import { useRouter } from "next/router";
+import UserProfile from "~/_components/user/UserProfile";
+import UserProfileEdit from "~/_components/user/UserProfileEdit";
+import UserProfileCreate from "~/_components/user/UserProfileCreate";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,

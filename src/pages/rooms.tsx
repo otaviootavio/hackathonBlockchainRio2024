@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { type GetSessionParams, getSession, useSession } from "next-auth/react";
 import { api } from "~/utils/api";
-import { Room } from "../_components/Room";
+import { Room } from "../_components/room/Room";
 
 import { db } from "~/server/db";
 

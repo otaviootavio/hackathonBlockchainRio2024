@@ -1,11 +1,11 @@
 import { api } from "~/utils/api";
-import PayAmountToAddress from "../PayAmountToAddress";
-import PaymentStatusResult from "../PaymentStatusResult";
 import WeightAdjuster from "./WeightAdjuster";
 import { useSubscribeToEvent } from "~/_hooks";
 import PaymentStatusTag from "./PaymentTagStatus";
 import timeElapsedSince from "~/utils/dateFromNow";
 import OwnerTag from "./OwnerTag";
+import PayAmountToAddress from "../payment/PayAmountToAddress";
+import PaymentStatusResult from "../payment/PaymentStatusResult";
 
 const CurrentUserParticipantView = ({
   participant,

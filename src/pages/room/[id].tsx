@@ -1,12 +1,13 @@
 import { useRouter } from "next/router";
 import { getSession, type GetSessionParams, useSession } from "next-auth/react";
-import { RoomHeader } from "~/_components/RoomHeader";
 import { ParticipantsList } from "~/_components/ParticipantsList";
-import { RoomJoin } from "~/_components/RoomJoin";
-import RoomStatus from "~/_components/RoomStatus";
+
 import { PusherProvider } from "~/_context/pusher/PusherProvider";
 import { RoomProvider, useRoomContext } from "~/_context/room/RoomContext";
 import { db } from "~/server/db";
+import { RoomJoin } from "~/_components/room/RoomJoin";
+import RoomStatus from "~/_components/room/RoomStatus";
+import { RoomHeader } from "~/_components/room/RoomHeader";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
