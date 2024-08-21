@@ -4,6 +4,15 @@ import { api } from "~/utils/api";
 import { useSession } from "next-auth/react";
 import { useSignRequest } from "~/_hooks/useRequestForSign";
 import Link from "next/link";
+import { z } from "zod";
+
+const SignResponseSchema = z.object({
+  uuid: z.string(),
+  next: z.string().url(),
+  qrCodeUrl: z.string().url(),
+});
+
+type SignResponse = z.infer<typeof SignResponseSchema>;
 
 const StepOne = ({
   profile,
@@ -29,11 +38,7 @@ const StepOne = ({
   </div>
 );
 
-const StepTwo = ({
-  signResponse,
-}: {
-  signResponse: { uuid: string; next: string; qrCodeUrl: string };
-}) => (
+const StepTwo = ({ signResponse }: { signResponse: SignResponse | null }) => (
   <div className="flex flex-col gap-4">
     <h2 className="text-xl font-bold">Sign the Request</h2>
     {signResponse ? (
@@ -94,6 +99,21 @@ const UpdatePaymentMethod = () => {
     await router.push("/profile");
   };
 
+  const parseSignResponse = (
+    query: string | string[] | undefined,
+  ): SignResponse | null => {
+    if (typeof query !== "string") return null;
+
+    try {
+      const decoded: string = decodeURIComponent(query);
+      const parsed: SignResponse = JSON.parse(decoded) as SignResponse;
+      return SignResponseSchema.parse(parsed);
+    } catch (error) {
+      console.error("Failed to parse signResponse:", error);
+      return null;
+    }
+  };
+
   if (!profile) {
     return <div>Loading...</div>;
   }
@@ -132,15 +152,7 @@ const UpdatePaymentMethod = () => {
       )}
 
       {step === 2 && (
-        <StepTwo
-          signResponse={
-            router.query.signResponse
-              ? JSON.parse(
-                  decodeURIComponent(router.query.signResponse as string),
-                )
-              : ""
-          }
-        />
+        <StepTwo signResponse={parseSignResponse(router.query.signResponse)} />
       )}
 
       {step === 3 && (

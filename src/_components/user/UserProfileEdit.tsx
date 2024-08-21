@@ -13,7 +13,7 @@ const UserProfileEdit = ({
   }) => void;
 }) => {
   const [name, setName] = useState(profile.name ?? "");
-  const [wallet, setWallet] = useState(profile.wallet ?? "");
+  const wallet = profile.wallet;
 
   const handleSubmit = (e: { preventDefault: () => void }) => {
     e.preventDefault();
