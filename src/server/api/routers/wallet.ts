@@ -80,7 +80,6 @@ export const xamanRouter = createTRPCRouter({
 
       try {
         const response = await axios(url, options);
-        console.log(JSON.stringify(response.data));
         const parsedResponse = paymentRequestResponseSchema.parse(
           response.data,
         );
