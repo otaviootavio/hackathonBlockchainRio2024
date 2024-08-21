@@ -27,22 +27,24 @@ const CreateSignRequest = () => {
   return (
     <>
       {res ? (
-        <Link
-          href={res.next}
-          className="w-full rounded-md bg-blue-600 p-1 text-center text-xs text-white shadow-sm hover:bg-blue-700"
-          passHref
-        >
-          Sign
-        </Link>
+        <div>
+          <Link
+            href={res.next}
+            className="w-full rounded-md bg-green-600 p-2  text-center text-sm text-white shadow-sm hover:bg-green-700"
+            passHref
+          >
+            Sign
+          </Link>
+        </div>
       ) : (
-        <>
+        <div>
           <button
-            className="w-full rounded-md bg-blue-600 p-1  text-center text-xs text-white shadow-sm hover:bg-blue-700"
+            className="w-full rounded-md bg-blue-600 p-2  text-center text-sm text-white shadow-sm hover:bg-blue-700"
             onClick={handleSubmit}
           >
-            Generate Sign Request
+            New wallet
           </button>
-        </>
+        </div>
       )}
     </>
   );
