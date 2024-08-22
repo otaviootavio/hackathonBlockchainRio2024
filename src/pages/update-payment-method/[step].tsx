@@ -5,14 +5,21 @@ import { useSession } from "next-auth/react";
 import { useSignRequest } from "~/_hooks/useRequestForSign";
 import Link from "next/link";
 import { z } from "zod";
+import { ParsedUrlQuery } from "querystring";
 
-const SignResponseSchema = z.object({
-  uuid: z.string(),
-  next: z.string().url(),
-  qrCodeUrl: z.string().url(),
+const toUrlQuerySchema = z.object({
+  toUrl: z
+    .string()
+    .refine(
+      (value) =>
+        /^(https?):\/\/(?=.*\.[a-z]{2,})[^\s$.?#].[^\s]*$/i.test(value),
+      {
+        message: "Please enter a valid URL",
+      },
+    ),
 });
 
-type SignResponse = z.infer<typeof SignResponseSchema>;
+type toUrlQuerySchemaType = z.infer<typeof toUrlQuerySchema>;
 
 const StepOne = ({
   profile,
@@ -38,22 +45,24 @@ const StepOne = ({
   </div>
 );
 
-const StepTwo = ({ signResponse }: { signResponse: SignResponse | null }) => (
-  <div className="flex flex-col gap-4">
-    <h2 className="text-xl font-bold">Sign the Request</h2>
-    {signResponse ? (
-      <Link
-        target="_blank"
-        href={signResponse.next}
-        className="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-      >
-        Sign Request
-      </Link>
-    ) : (
-      <p>Preparing signing request...</p>
-    )}
-  </div>
-);
+const StepTwo = ({ toUrl }: { toUrl: string | null }) => {
+  console.log("toUrl:", toUrl);
+  return (
+    <div className="flex flex-col gap-4">
+      <h2 className="text-xl font-bold">Sign the Request</h2>
+      {toUrl ? (
+        <Link
+          href={toUrl}
+          className="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+        >
+          Sign Request
+        </Link>
+      ) : (
+        <p>Preparing signing request...</p>
+      )}
+    </div>
+  );
+};
 
 const StepThree = ({
   wallet,
@@ -90,8 +99,9 @@ const UpdatePaymentMethod = () => {
     e.preventDefault();
     const returnUrl = `/update-payment-method/3`;
     const res = await createSignRequest(returnUrl, "wallet_change");
+    console.log("res", res);
     await router.push(
-      `/update-payment-method/2?signResponse=${encodeURIComponent(JSON.stringify(res))}`,
+      `/update-payment-method/2?toUrl=${encodeURIComponent(res?.next ?? "")}`,
     );
   };
 
@@ -99,18 +109,14 @@ const UpdatePaymentMethod = () => {
     await router.push("/profile");
   };
 
-  const parseSignResponse = (
-    query: string | string[] | undefined,
-  ): SignResponse | null => {
-    if (typeof query !== "string") return null;
-
+  const parseSignResponse = (query: ParsedUrlQuery): { toUrl: string } => {
     try {
-      const decoded: string = decodeURIComponent(query);
-      const parsed: SignResponse = JSON.parse(decoded) as SignResponse;
-      return SignResponseSchema.parse(parsed);
+      return toUrlQuerySchema.parse({
+        toUrl: decodeURIComponent(query.toUrl as string),
+      });
     } catch (error) {
       console.error("Failed to parse signResponse:", error);
-      return null;
+      throw error;
     }
   };
 
@@ -151,9 +157,7 @@ const UpdatePaymentMethod = () => {
         <StepOne profile={profile} onRequestChange={handleRequestChange} />
       )}
 
-      {step === 2 && (
-        <StepTwo signResponse={parseSignResponse(router.query.signResponse)} />
-      )}
+      {step === 2 && <StepTwo toUrl={parseSignResponse(router.query)?.toUrl} />}
 
       {step === 3 && (
         <StepThree wallet={profile?.wallet ?? ""} onAccept={handleAccept} />
