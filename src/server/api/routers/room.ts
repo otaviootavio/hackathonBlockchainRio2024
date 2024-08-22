@@ -16,7 +16,7 @@ export const roomRouter = createTRPCRouter({
         participantName: z.string().min(1),
         participantPayed: z.boolean(),
         userId: z.string(),
-        userProfileId: z.string(),
+        profileId: z.string(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -26,7 +26,6 @@ export const roomRouter = createTRPCRouter({
             name: input.name,
             description: input.description,
             totalPrice: input.totalPrice,
-            ownerId: input.userId,
           },
         });
 
@@ -35,7 +34,7 @@ export const roomRouter = createTRPCRouter({
             roomId: room.id,
             payed: input.participantPayed,
             userId: input.userId,
-            userProfileId: input.userProfileId,
+            profileId: input.profileId,
             role: "owner",
             weight: 1,
           },
@@ -54,11 +53,15 @@ export const roomRouter = createTRPCRouter({
         where: { id: input.id },
         include: {
           participants: {
+            include: {
+              user: {
+                include: {
+                  profile: true,
+                },
+              },
+            },
             orderBy: {
               createdAt: "asc",
-            },
-            include: {
-              userProfile: true,
             },
           },
         },
@@ -68,17 +71,23 @@ export const roomRouter = createTRPCRouter({
         throw new Error("Room not found");
       }
 
-      const participants = data.participants.map((p) => ({
-        name: p.userProfile.name,
-        wallet: p.userProfile.wallet,
-        payed: p.payed,
-        role: p.role,
-        weight: p.weight,
-        roomId: p.roomId,
-        userId: p.userId,
-        createdAt: p.createdAt,
-        userParticipantId: p.id,
-      }));
+      const participants = data.participants.map((p) => {
+        if (!p.user?.profile?.name) {
+          throw new Error("User profile not found");
+        }
+
+        return {
+          name: p.user.profile.name,
+          wallet: p.user.profile.wallet,
+          payed: p.payed,
+          role: p.role,
+          weight: p.weight,
+          roomId: p.roomId,
+          userId: p.userId,
+          createdAt: p.createdAt,
+          userParticipantId: p.id,
+        };
+      });
 
       const room = {
         id: data.id,
@@ -97,10 +106,11 @@ export const roomRouter = createTRPCRouter({
     return ctx.db.room.findMany();
   }),
 
-  getRoomsByUserIdInEachRoom: protectedProcedure
+  getRoomsByUserIdInRoom: protectedProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ ctx, input }) => {
       return ctx.db.room.findMany({
+        orderBy: { createdAt: "desc" },
         where: {
           participants: {
             some: {
@@ -108,6 +118,7 @@ export const roomRouter = createTRPCRouter({
             },
           },
         },
+        include: { participants: true },
       });
     }),
 
@@ -263,7 +274,12 @@ export const roomRouter = createTRPCRouter({
       const room = await ctx.db.room.findFirst({
         where: {
           id: input.id,
-          ownerId: input.userId,
+          participants: {
+            some: {
+              userId: input.userId,
+              role: "owner",
+            },
+          },
         },
       });
 
@@ -295,7 +311,12 @@ export const roomRouter = createTRPCRouter({
       const room = await ctx.db.room.findFirst({
         where: {
           id: input.id,
-          ownerId: input.userId,
+          participants: {
+            some: {
+              userId: input.userId,
+              role: "owner",
+            },
+          },
         },
       });
 

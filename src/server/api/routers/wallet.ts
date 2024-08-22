@@ -25,7 +25,7 @@ const paymentRequestResponseSchema = z.object({
 });
 
 // Define the schema for the payment status response
-const paymentStatusResponseSchema = z.object({
+export const paymentStatusResponseSchema = z.object({
   response: z.object({
     txid: z.string().or(z.null()),
     resolved_at: z.string().or(z.null()),
@@ -36,6 +36,84 @@ const paymentStatusResponseSchema = z.object({
 });
 
 export const xamanRouter = createTRPCRouter({
+  createSignRequest: protectedProcedure
+    .input(
+      z.object({
+        returnUrl: z.string(),
+        memo: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const url = "https://xumm.app/api/v1/platform/payload";
+      const payload = {
+        txjson: {
+          TransactionType: "SignIn",
+          ...(input.memo && {
+            Memos: [
+              {
+                Memo: {
+                  MemoType: Buffer.from("memo", "utf8").toString("hex"),
+                  MemoData: Buffer.from(input.memo, "utf8").toString("hex"),
+                },
+              },
+            ],
+          }),
+        },
+        options: {
+          return_url: {
+            app: getUrl(`${input.returnUrl}`),
+            web: getUrl(`${input.returnUrl}`),
+          },
+        },
+      };
+
+      const options = {
+        method: "POST",
+        headers: {
+          accept: "application/json",
+          "Content-Type": "application/json",
+          "X-API-Key": XUMM_API_KEY,
+          "X-API-Secret": XUMM_API_SECRET,
+        },
+        data: payload,
+      };
+
+      try {
+        const response = await axios(url, options);
+        const parsedResponse = paymentRequestResponseSchema.parse(
+          response.data,
+        );
+
+        await db.webhookEvent.create({
+          data: {
+            payloadId: parsedResponse.uuid,
+            userId: ctx.session.user.id,
+            status: "pending",
+          },
+        });
+
+        return {
+          uuid: parsedResponse.uuid,
+          next: parsedResponse.next.always,
+          qrCodeUrl: parsedResponse.refs.qr_png,
+        };
+      } catch (e) {
+        if (e instanceof Error) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Failed to retrieve payment status: ${e.message}`,
+            cause: e,
+          });
+        } else {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message:
+              "Failed to retrieve payment status due to an unknown error.",
+          });
+        }
+      }
+    }),
+
   // Procedure to create a payment request
   createPaymentRequest: protectedProcedure
     .input(
@@ -160,7 +238,6 @@ export const xamanRouter = createTRPCRouter({
     .input(
       z.object({
         payloadId: z.string(),
-        referenceId: z.string(),
         userId: z.string(),
         roomId: z.string(),
       }),
@@ -170,7 +247,6 @@ export const xamanRouter = createTRPCRouter({
         const webhookEvent = await db.webhookEvent.create({
           data: {
             payloadId: input.payloadId,
-            referenceId: input.referenceId,
             roomId: input.roomId,
             userId: input.userId,
             status: "pending",

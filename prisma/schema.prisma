@@ -7,16 +7,25 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
-model Post {
-    id        Int      @id @default(autoincrement())
-    name      String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+model User {
+    id            String        @id @default(cuid())
+    name          String?
+    email         String?       @unique
+    emailVerified DateTime?
+    image         String?
+    accounts      Account[]
+    sessions      Session[]
+    profile       UserProfile?
+    participants  Participant[]
+    userProfileId String?       @unique
+}
 
-    createdBy   User   @relation(fields: [createdById], references: [id])
-    createdById String
-
-    @@index([name])
+model UserProfile {
+    id     String  @id @default(cuid())
+    name   String?
+    wallet String?
+    userId String  @unique
+    user   User    @relation(fields: [userId], references: [id])
 }
 
 // Necessary for Next auth
@@ -47,17 +56,29 @@ model Session {
     user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model User {
-    id            String       @id @default(cuid())
-    name          String?
-    email         String?      @unique
-    emailVerified DateTime?
-    image         String?
-    accounts      Account[]
-    sessions      Session[]
-    posts         Post[]
-    userProfile   UserProfile?
-    Room          Room[]
+model Room {
+    id                   String        @id @default(uuid())
+    name                 String
+    description          String
+    totalPrice           Int
+    isOpen               Boolean       @default(true)
+    participants         Participant[]
+    isReadyForSettlement Boolean       @default(false)
+    hasSettled           Boolean       @default(false)
+    createdAt            DateTime      @default(now())
+}
+
+model Participant {
+    id        String   @id @default(uuid())
+    payed     Boolean
+    role      String
+    weight    Int
+    roomId    String
+    userId    String
+    createdAt DateTime @default(now())
+    room      Room     @relation(fields: [roomId], references: [id])
+    user      User     @relation(fields: [userId], references: [id])
+    profileId String
 }
 
 model VerificationToken {
@@ -68,50 +89,14 @@ model VerificationToken {
     @@unique([identifier, token])
 }
 
-model Room {
-    id                   String        @id @default(uuid())
-    name                 String
-    description          String
-    totalPrice           Int
-    isOpen               Boolean       @default(true)
-    participants         Participant[]
-    isReadyForSettlement Boolean       @default(false) // true when owner says that the room is ready to settle, then no more modifications can be made
-    hasSettled           Boolean       @default(false) // true when all participants have settled
-    ownerId              String
-    owner                User          @relation(fields: [ownerId], references: [id])
-}
-
-model Participant {
-    id            String      @id @default(uuid())
-    payed         Boolean
-    role          String
-    weight        Int
-    roomId        String
-    userId        String
-    room          Room        @relation(fields: [roomId], references: [id])
-    createdAt     DateTime    @default(now())
-    userProfileId String
-    userProfile   UserProfile @relation(fields: [userProfileId], references: [id])
-}
-
-model UserProfile {
-    id          String        @id @default(cuid())
-    name        String
-    wallet      String
-    userId      String        @unique
-    user        User          @relation(fields: [userId], references: [id])
-    Participant Participant[]
-}
-
 model WebhookEvent {
-    id          String   @id @default(cuid())
-    payloadId   String   @unique
-    referenceId String   @unique
-    signed      Boolean?
-    txid        String? // Nullable because rejected transactions won't have a txid
-    status      String   @default("pending") // New field for tracking status
-    userId      String? // Nullable, as we might not always have userId initially
-    roomId      String? // Nullable, as we might not always have roomId initially
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+    id        String   @id @default(cuid())
+    payloadId String   @unique
+    signed    Boolean?
+    txid      String?
+    status    String   @default("pending")
+    userId    String?
+    roomId    String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

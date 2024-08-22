@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { api } from "~/utils/api";
-import UserProfile from "~/_components/UserProfile";
 import { getSession, type GetSessionParams, useSession } from "next-auth/react";
-import UserProfileCreate from "~/_components/UserProfileCreate";
-import UserProfileEdit from "~/_components/UserProfileEdit";
+
 import { useRouter } from "next/router";
+import UserProfile from "~/_components/user/UserProfile";
+import UserProfileEdit from "~/_components/user/UserProfileEdit";
+import UserProfileCreate from "~/_components/user/UserProfileCreate";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -39,31 +40,42 @@ function Profile() {
 
   const createUserProfile = api.userProfile.createUserProfile.useMutation();
 
-  const handleCreateUserProfile = async (profile: {
-    name: string;
-    wallet: string;
-  }) => {
-    await createUserProfile.mutateAsync({
-      userId: session.data?.user?.id ?? "",
-      ...profile,
-    });
-    // redirect to rooms
-    await router.push("/rooms");
+  const handleCreateUserProfile = async (profile: { name: string | null }) => {
+    if (!!profile.name) {
+      const profileNotNull = {
+        name: profile.name,
+      };
+      await createUserProfile.mutateAsync({
+        userId: session.data?.user?.id ?? "",
+        ...profileNotNull,
+      });
+      await router.push("/rooms");
+    } else {
+      throw new Error("Name and wallet cannot be empty");
+    }
   };
 
   const edtiUserProfile = api.userProfile.updateUserProfile.useMutation();
 
   const handleSaveUserProfile = async (profile: {
-    name: string;
-    wallet: string;
+    name: string | null;
     id: string;
   }) => {
-    await edtiUserProfile.mutateAsync({
-      ...profile,
-    });
-    // refetch profile and tunr edit mode off
-    await refetchProfile();
-    setEditMode(false);
+    if (!!profile.name) {
+      const profileNotNull = {
+        name: profile.name,
+      };
+
+      await edtiUserProfile.mutateAsync({
+        id: profile.id,
+        ...profileNotNull,
+      });
+
+      await refetchProfile();
+      setEditMode(false);
+    } else {
+      throw new Error("Name and wallet cannot be empty");
+    }
   };
 
   return (
@@ -72,21 +84,22 @@ function Profile() {
         <div className="rounded-lg border-2 bg-white p-4">
           <div className="flex justify-between ">
             <h1 className="my-4 text-2xl font-bold">User Profile</h1>
-            {editMode ? (
-              <button
-                onClick={() => setEditMode(false)}
-                className="rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Cancel
-              </button>
-            ) : (
-              <button
-                onClick={() => setEditMode(true)}
-                className="rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Edit
-              </button>
-            )}
+            {!!profile &&
+              (editMode ? (
+                <button
+                  onClick={() => setEditMode(false)}
+                  className="rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Cancel
+                </button>
+              ) : (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Edit
+                </button>
+              ))}
           </div>
           {profile ? (
             editMode ? (

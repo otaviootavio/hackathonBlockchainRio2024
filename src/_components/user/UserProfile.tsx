@@ -3,7 +3,7 @@ import React from "react";
 const UserProfile = ({
   profile,
 }: {
-  profile: { name: string; wallet: string };
+  profile: { name: string | null; wallet: string | null };
 }) => {
   return (
     <div>
@@ -13,7 +13,7 @@ const UserProfile = ({
         </label>
         <input
           type="text"
-          value={profile.name}
+          value={profile.name ?? "Add a name!"}
           disabled
           className="w-full cursor-not-allowed rounded border border-gray-300 bg-gray-200 px-3 py-2 text-gray-700 shadow-sm"
         />
@@ -24,7 +24,7 @@ const UserProfile = ({
         </label>
         <input
           type="text"
-          value={profile.wallet}
+          value={profile.wallet ?? "Edit to add a wallet"}
           disabled
           className="w-full cursor-not-allowed rounded border border-gray-300 bg-gray-200 px-3 py-2 text-gray-700 shadow-sm"
         />

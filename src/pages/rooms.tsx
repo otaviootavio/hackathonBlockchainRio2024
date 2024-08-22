@@ -1,7 +1,7 @@
 import { useRouter } from "next/router";
 import { type GetSessionParams, getSession, useSession } from "next-auth/react";
 import { api } from "~/utils/api";
-import { Room } from "../_components/Room";
+import { Room } from "../_components/room/Room";
 
 import { db } from "~/server/db";
 
@@ -41,7 +41,7 @@ export default function Rooms() {
   const router = useRouter();
   const session = useSession();
 
-  const rooms = api.room.getRoomsByUserIdInEachRoom.useQuery({
+  const rooms = api.room.getRoomsByUserIdInRoom.useQuery({
     userId: session.data?.user?.id ?? "",
   });
 
@@ -72,7 +72,15 @@ export default function Rooms() {
             </div>
           ))
         ) : (
-          <div>No Rooms</div>
+          <div className="my-2 rounded-xl border border-slate-300 bg-white p-2 shadow-sm">
+            <div className="flex flex-row justify-between">
+              <article className="text-wrap break-all">
+                <h2 className="slate-700 text-xl text-slate-600">No Rooms</h2>
+                <p className="text-lg text-slate-600">Create a room to start</p>
+              </article>
+              <div className="flex flex-col justify-around gap-2"></div>
+            </div>
+          </div>
         )}
       </div>
     </>

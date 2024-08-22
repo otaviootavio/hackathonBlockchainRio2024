@@ -10,7 +10,6 @@ export const userProfileRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().min(1),
-        wallet: z.string().min(1),
         userId: z.string().min(1),
       }),
     )
@@ -18,7 +17,6 @@ export const userProfileRouter = createTRPCRouter({
       return ctx.db.userProfile.create({
         data: {
           name: input.name,
-          wallet: input.wallet,
           userId: input.userId,
         },
       });
@@ -63,6 +61,22 @@ export const userProfileRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return ctx.db.userProfile.delete({
         where: { id: input.id },
+      });
+    }),
+
+  addWalletToProfile: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        wallet: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.db.userProfile.update({
+        where: { id: input.id },
+        data: {
+          wallet: input.wallet,
+        },
       });
     }),
 });

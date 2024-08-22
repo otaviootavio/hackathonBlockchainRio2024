@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { useCreatePayment } from "../_hooks/useCreatePayment";
 import Link from "next/link";
 import { api } from "~/utils/api";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import { useCreatePayment } from "~/_hooks";
 
 const PayAmountToAddress = ({
   amount,
@@ -35,7 +35,6 @@ const PayAmountToAddress = ({
 
     await createWebhookEvent.mutateAsync({
       payloadId: res?.uuid ?? "",
-      referenceId: res?.uuid ?? "",
       userId: session.data?.user?.id ?? "",
       roomId: roomId,
     });

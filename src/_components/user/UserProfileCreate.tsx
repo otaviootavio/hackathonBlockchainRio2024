@@ -3,16 +3,17 @@ import React, { useState } from "react";
 const UserProfileCreate = ({
   handleCreateUserProfile,
 }: {
-  handleCreateUserProfile: (profile: { name: string; wallet: string }) => void;
+  handleCreateUserProfile: (profile: { name: string }) => void;
 }) => {
   const [name, setName] = useState("");
-  const [wallet, setWallet] = useState("");
+  // TODO
+  // Handle errors
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        handleCreateUserProfile({ name, wallet });
+        handleCreateUserProfile({ name });
       }}
     >
       <div className="mb-4">
@@ -23,17 +24,6 @@ const UserProfileCreate = ({
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="focus:shadow-outline w-full rounded border px-3 py-2 shadow-sm focus:outline-none"
-        />
-      </div>
-      <div className="mb-4">
-        <label className="mb-2 block text-sm font-bold text-gray-700">
-          Wallet
-        </label>
-        <input
-          type="text"
-          value={wallet}
-          onChange={(e) => setWallet(e.target.value)}
           className="focus:shadow-outline w-full rounded border px-3 py-2 shadow-sm focus:outline-none"
         />
       </div>

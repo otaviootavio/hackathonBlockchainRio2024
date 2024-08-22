@@ -6,8 +6,8 @@ import { type AppType } from "next/app";
 import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
-import { NavBar } from "~/_components/NavBar";
 import Head from "next/head";
+import { NavBar } from "~/_components/common/NavBar";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,

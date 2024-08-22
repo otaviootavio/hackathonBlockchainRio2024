@@ -45,7 +45,7 @@ const PaymentStatusResult: React.FC<PaymentStatusResultProps> = ({ uuid }) => {
 
     if (data.resolved_at && data.dispatched_to_node === true) {
       return (
-        <>
+        <div>
           <p>Transaction completed</p>
           <div>
             <Link
@@ -56,7 +56,7 @@ const PaymentStatusResult: React.FC<PaymentStatusResultProps> = ({ uuid }) => {
               See at block explorer
             </Link>
           </div>
-        </>
+        </div>
       );
     }
 
