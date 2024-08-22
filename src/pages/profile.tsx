@@ -40,14 +40,10 @@ function Profile() {
 
   const createUserProfile = api.userProfile.createUserProfile.useMutation();
 
-  const handleCreateUserProfile = async (profile: {
-    name: string | null;
-    wallet: string | null;
-  }) => {
-    if (!!profile.name && !!profile.wallet) {
+  const handleCreateUserProfile = async (profile: { name: string | null }) => {
+    if (!!profile.name) {
       const profileNotNull = {
         name: profile.name,
-        wallet: profile.wallet,
       };
       await createUserProfile.mutateAsync({
         userId: session.data?.user?.id ?? "",
@@ -63,13 +59,11 @@ function Profile() {
 
   const handleSaveUserProfile = async (profile: {
     name: string | null;
-    wallet: string | null;
     id: string;
   }) => {
-    if (!!profile.name && !!profile.wallet) {
+    if (!!profile.name) {
       const profileNotNull = {
         name: profile.name,
-        wallet: profile.wallet,
       };
 
       await edtiUserProfile.mutateAsync({
@@ -90,21 +84,22 @@ function Profile() {
         <div className="rounded-lg border-2 bg-white p-4">
           <div className="flex justify-between ">
             <h1 className="my-4 text-2xl font-bold">User Profile</h1>
-            {editMode ? (
-              <button
-                onClick={() => setEditMode(false)}
-                className="rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Cancel
-              </button>
-            ) : (
-              <button
-                onClick={() => setEditMode(true)}
-                className="rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Edit
-              </button>
-            )}
+            {!!profile &&
+              (editMode ? (
+                <button
+                  onClick={() => setEditMode(false)}
+                  className="rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Cancel
+                </button>
+              ) : (
+                <button
+                  onClick={() => setEditMode(true)}
+                  className="rounded bg-blue-500 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                >
+                  Edit
+                </button>
+              ))}
           </div>
           {profile ? (
             editMode ? (

@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import { useSignRequest } from "~/_hooks/useRequestForSign";
 import Link from "next/link";
 import { z } from "zod";
-import { ParsedUrlQuery } from "querystring";
+import { type ParsedUrlQuery } from "querystring";
 
 const toUrlQuerySchema = z.object({
   toUrl: z
@@ -19,8 +19,6 @@ const toUrlQuerySchema = z.object({
     ),
 });
 
-type toUrlQuerySchemaType = z.infer<typeof toUrlQuerySchema>;
-
 const StepOne = ({
   profile,
   onRequestChange,
@@ -32,7 +30,7 @@ const StepOne = ({
     <h2 className="text-xl font-bold">Current Wallet</h2>
     <input
       type="text"
-      value={profile?.wallet ?? ""}
+      value={profile?.wallet ?? "No wallet yet :("}
       disabled
       className="w-full cursor-not-allowed rounded border border-gray-300 bg-gray-200 px-3 py-2 text-gray-700 shadow-sm"
     />

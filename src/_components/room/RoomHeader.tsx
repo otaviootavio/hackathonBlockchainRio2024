@@ -14,7 +14,7 @@ interface Room {
     userId: string;
     weight: number;
     name: string;
-    wallet: string;
+    wallet: string | null;
     userParticipantId: string;
   }[];
 }
@@ -30,7 +30,7 @@ interface RoomHeaderProps {
     userId: string;
     weight: number;
     name: string;
-    wallet: string;
+    wallet: string | null;
     userParticipantId: string;
   };
 }

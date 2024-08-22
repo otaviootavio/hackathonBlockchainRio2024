@@ -3,6 +3,7 @@ import { api, type RouterOutputs } from "~/utils/api";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useSubscribeToEvent } from "~/_hooks";
+import { OwnerWalletNotFoundError } from "~/_errors/OwnerWalletNotFound";
 
 type roomDataType = RouterOutputs["room"]["getRoomById"] | undefined;
 type userProfileType =
@@ -106,6 +107,14 @@ export const RoomProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleSetReadyForSettlement = async () => {
+    const owner = room.data?.participants.find(
+      (p: { role: string; userId: string }) =>
+        p.role === "owner" && p.userId === session.data?.user?.id,
+    );
+    if (!owner?.wallet) {
+      throw new OwnerWalletNotFoundError();
+    }
+
     await setreadyForSettlement.mutateAsync({
       id: roomId,
       userId: session.data?.user?.id ?? "",

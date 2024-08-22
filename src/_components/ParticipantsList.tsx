@@ -13,7 +13,7 @@ export const ParticipantsList = ({
 }: {
   participants: {
     name: string;
-    wallet: string;
+    wallet: string | null;
     userParticipantId: string;
     payed: boolean;
     role: string;

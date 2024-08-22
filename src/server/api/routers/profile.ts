@@ -10,7 +10,6 @@ export const userProfileRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().min(1),
-        wallet: z.string().min(1),
         userId: z.string().min(1),
       }),
     )
@@ -18,7 +17,6 @@ export const userProfileRouter = createTRPCRouter({
       return ctx.db.userProfile.create({
         data: {
           name: input.name,
-          wallet: input.wallet,
           userId: input.userId,
         },
       });

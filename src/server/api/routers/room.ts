@@ -72,9 +72,6 @@ export const roomRouter = createTRPCRouter({
       }
 
       const participants = data.participants.map((p) => {
-        if (!p.user?.profile?.wallet) {
-          throw new Error("User profile not found");
-        }
         if (!p.user?.profile?.name) {
           throw new Error("User profile not found");
         }

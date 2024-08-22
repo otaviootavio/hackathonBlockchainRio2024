@@ -8,6 +8,7 @@ import { db } from "~/server/db";
 import { RoomJoin } from "~/_components/room/RoomJoin";
 import RoomStatus from "~/_components/room/RoomStatus";
 import { RoomHeader } from "~/_components/room/RoomHeader";
+import { ModalProvider } from "~/_context/ui/ModalProvider";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -134,9 +135,11 @@ export default function Page() {
         userInfo={{ name: session.user.name ?? "" }}
         userId={session.user.id}
       >
-        <RoomProvider>
-          <Room />
-        </RoomProvider>
+        <ModalProvider>
+          <RoomProvider>
+            <Room />
+          </RoomProvider>
+        </ModalProvider>
       </PusherProvider>
     );
   }

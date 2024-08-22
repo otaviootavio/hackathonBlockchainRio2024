@@ -1,5 +1,8 @@
+import Link from "next/link";
 import React from "react";
 import { useRoomContext } from "~/_context/room/RoomContext";
+import { OwnerWalletNotFoundError } from "~/_errors/OwnerWalletNotFound";
+import { useModal } from "~/_hooks/useModal";
 
 interface RoomStatusProps {
   room: {
@@ -25,6 +28,34 @@ const RenderButton = ({
   };
 }) => {
   const { handleSetReadyForSettlement, handleSettleRoom } = useRoomContext();
+  const { showModal } = useModal();
+
+  const handleClickToSettleRoom = async () => {
+    try {
+      await handleSetReadyForSettlement();
+    } catch (error) {
+      if (error instanceof OwnerWalletNotFoundError) {
+        showModal(
+          "info",
+          <div className="flex flex-col gap-2">
+            <div>
+              <p>Add a payment method!</p>
+            </div>
+            <div>
+              <Link
+                className="inline-flex w-28 items-center justify-center rounded bg-blue-500 p-2 px-2 text-xs font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-1 focus:ring-blue-300 "
+                href="/update-payment-method/1"
+              >
+                Add Payment
+              </Link>
+            </div>
+          </div>,
+        );
+      } else {
+        console.error(error);
+      }
+    }
+  };
 
   if (!isUserOwner) {
     return <></>;
@@ -36,7 +67,7 @@ const RenderButton = ({
     return (
       <button
         className="  rounded border border-solid border-red-500 bg-transparent px-4 py-2 text-xs font-bold uppercase text-red-500 outline-none transition-all duration-150 ease-linear hover:bg-red-500 hover:text-white focus:outline-none active:bg-red-600"
-        onClick={handleSetReadyForSettlement}
+        onClick={handleClickToSettleRoom}
       >
         <i className="fa fa-check" />
         Close the bill!
