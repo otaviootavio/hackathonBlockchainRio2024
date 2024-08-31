@@ -90,13 +90,14 @@ model VerificationToken {
 }
 
 model WebhookEvent {
-    id        String   @id @default(cuid())
-    payloadId String   @unique
-    signed    Boolean?
-    txid      String?
-    status    String   @default("pending")
-    userId    String?
-    roomId    String?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    id              String   @id @default(cuid())
+    payloadId       String   @unique
+    signed          Boolean?
+    txid            String?
+    status          String   @default("pending")
+    userId          String?
+    roomId          String?
+    dispachedToNode Boolean? @default(false)
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
 }

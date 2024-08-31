@@ -59,7 +59,7 @@ export const xummPayloadDetailsSchema = z.object({
     disabled: z.number().int(),
     uuidv4: z.string().uuid(),
     icon_url: z.string().url(),
-    issued_user_token: z.string().uuid(),
+    issued_user_token: z.string().uuid().nullable(),
   }),
   payload: z.object({
     tx_type: z.string(),
@@ -67,31 +67,35 @@ export const xummPayloadDetailsSchema = z.object({
     tx_destination_tag: z.null(),
     request_json: z.object({
       TransactionType: z.string(),
-      Memos: z.array(
-        z.object({
-          Memo: z.object({
-            MemoType: z.string(),
-            MemoData: z.string(),
+      Memos: z
+        .array(
+          z.object({
+            Memo: z.object({
+              MemoType: z.string(),
+              MemoData: z.string(),
+            }),
           }),
-        }),
-      ),
-      SignIn: z.boolean(),
+        )
+        .optional(),
+      SignIn: z.boolean().optional(),
     }),
     origintype: z.string(),
     signmethod: z.string(),
     created_at: z.string().datetime(),
     expires_at: z.string().datetime(),
     expires_in_seconds: z.number().int(),
-    computed: z.object({
-      Memos: z.array(
-        z.object({
-          Memo: z.object({
-            MemoType: z.string(),
-            MemoData: z.string(),
+    computed: z
+      .object({
+        Memos: z.array(
+          z.object({
+            Memo: z.object({
+              MemoType: z.string(),
+              MemoData: z.string(),
+            }),
           }),
-        }),
-      ),
-    }),
+        ),
+      })
+      .optional(),
   }),
   response: z.object({
     hex: z.string(),

@@ -11,7 +11,6 @@ export const useCreatePayment = () => {
     amount: string,
     destination: string,
     destinationTag?: string,
-    memo?: string,
   ) => {
     setLoading(true);
     setError(null);
@@ -21,7 +20,6 @@ export const useCreatePayment = () => {
         amount,
         destination,
         destinationTag,
-        memo,
       });
       return res;
     } catch (e) {

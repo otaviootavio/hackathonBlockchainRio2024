@@ -122,7 +122,6 @@ export const xamanRouter = createTRPCRouter({
         amount: z.string().min(1),
         destination: z.string().min(1),
         destinationTag: z.string().optional(),
-        memo: z.string().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -133,16 +132,6 @@ export const xamanRouter = createTRPCRouter({
           Amount: input.amount,
           Destination: input.destination,
           ...(input.destinationTag && { DestinationTag: input.destinationTag }),
-          ...(input.memo && {
-            Memos: [
-              {
-                Memo: {
-                  MemoType: Buffer.from("memo", "utf8").toString("hex"),
-                  MemoData: Buffer.from(input.memo, "utf8").toString("hex"),
-                },
-              },
-            ],
-          }),
         },
         options: {
           return_url: {
@@ -286,6 +275,50 @@ export const xamanRouter = createTRPCRouter({
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to retrieve successful webhook events.",
+          cause: e,
+        });
+      }
+    }),
+
+  getSuccessfulWebhookEventsByParticipantId: protectedProcedure
+    .input(
+      z.object({
+        participantId: z.string(),
+        roomId: z.string(),
+      }),
+    )
+    .query(async ({ input, ctx }) => {
+      try {
+        const participant = await ctx.db.participant.findUnique({
+          where: { id: input.participantId },
+          select: { userId: true },
+        });
+
+        if (!participant) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Participant not found",
+          });
+        }
+
+        const successfulWebhookEvents = await ctx.db.webhookEvent.findMany({
+          where: {
+            userId: participant.userId,
+            roomId: input.roomId,
+            status: "signed",
+          },
+        });
+
+        return { status: "success", successfulWebhookEvents };
+      } catch (e) {
+        console.error(
+          "Failed to retrieve successful webhook events by participant id:",
+          e,
+        );
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            "Failed to retrieve successful webhook events by participant id.",
           cause: e,
         });
       }

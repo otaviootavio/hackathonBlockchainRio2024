@@ -1,3 +1,4 @@
+import ParticipantTransactionViewer from "../payment/ParticipantTransactionViewer";
 import OwnerTag from "./OwnerTag";
 import PaymentStatusTag from "./PaymentTagStatus";
 import RemoveButton from "./RemoveButton";
@@ -53,6 +54,15 @@ const AdminParticipantView = ({
           weight={weight}
           canUserEditThisParticipantWeight={true}
         />
+      </div>
+      <div>
+        {payed && role != "owner" && (
+          <ParticipantTransactionViewer
+            participantId={userParticipantId}
+            roomId={participant.roomId}
+            role={role}
+          />
+        )}
       </div>
     </div>
   );

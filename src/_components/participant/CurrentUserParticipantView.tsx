@@ -1,11 +1,8 @@
-import { api } from "~/utils/api";
 import WeightAdjuster from "./WeightAdjuster";
-import { useSubscribeToEvent } from "~/_hooks";
 import PaymentStatusTag from "./PaymentTagStatus";
 import timeElapsedSince from "~/utils/dateFromNow";
 import OwnerTag from "./OwnerTag";
-import PayAmountToAddress from "../payment/PayAmountToAddress";
-import PaymentStatusResult from "../payment/PaymentStatusResult";
+import PaymentSection from "../payment/PaymentSection";
 
 const CurrentUserParticipantView = ({
   participant,
@@ -44,23 +41,6 @@ const CurrentUserParticipantView = ({
   } = participant;
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
 
-  const {
-    data: webhookEvents,
-    isLoading,
-    error,
-    refetch,
-  } = api.xaman.getSuccessfulWebhookEvents.useQuery({
-    userId,
-    roomId: roomId ?? "",
-  });
-
-  useSubscribeToEvent("participant-payed", () => {
-    refetch().catch(console.error);
-  });
-
-  const noPaymentsConfirmed =
-    webhookEvents?.successfulWebhookEvents.length === 0;
-
   return (
     <div className="flex flex-col justify-between rounded border border-slate-500 bg-slate-50 p-4">
       <div className="flex flex-row">
@@ -91,34 +71,18 @@ const CurrentUserParticipantView = ({
         />
       </div>
       <div className="flex flex-col justify-start space-y-2 md:flex-row md:space-x-2 md:space-y-0">
-        {renderPaymentSection()}
+        <PaymentSection
+          roomId={roomId}
+          participantId={userParticipantId}
+          room={room}
+          payed={payed}
+          amount={amount}
+          ownerAddress={ownerAddress}
+          role={role}
+        />
       </div>
     </div>
   );
-
-  function renderPaymentSection() {
-    if (isLoading) return <p>Loading webhook events...</p>;
-    if (error) return <p>Error loading webhook events: {error.message}</p>;
-
-    return (
-      <>
-        {room.isReadyForSettlement && noPaymentsConfirmed && !payed && (
-          <PayAmountToAddress amount={amount} address={ownerAddress} />
-        )}
-        {webhookEvents && (
-          <ul>
-            {webhookEvents.successfulWebhookEvents.map((event) => (
-              <li key={event.id}>
-                {event.payloadId && (
-                  <PaymentStatusResult uuid={event.payloadId} />
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </>
-    );
-  }
 };
 
 export default CurrentUserParticipantView;

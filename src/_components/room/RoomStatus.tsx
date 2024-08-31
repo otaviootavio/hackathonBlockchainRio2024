@@ -75,7 +75,7 @@ const RenderButton = ({
     );
   }
   if (room.isReadyForSettlement && !hasEveryonePayed) {
-    return <h2>Everyone has not paid yet!</h2>;
+    return <h2>Payments still pending</h2>;
   }
   if (room.isReadyForSettlement && hasEveryonePayed) {
     return (

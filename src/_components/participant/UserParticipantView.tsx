@@ -1,6 +1,8 @@
 import timeElapsedSince from "~/utils/dateFromNow";
 import PaymentStatusTag from "./PaymentTagStatus";
 import OwnerTag from "./OwnerTag";
+import { LiaPizzaSliceSolid } from "react-icons/lia";
+import ParticipantTransactionViewer from "../payment/ParticipantTransactionViewer";
 
 const UserParticipantView = ({
   participant,
@@ -9,18 +11,17 @@ const UserParticipantView = ({
 }: {
   participant: {
     userParticipantId: string;
-    payed: boolean;
-    role: string;
-    roomId: string;
-    userId: string;
     weight: number;
+    payed: boolean;
     name: string;
     createdAt: Date;
+    role: string;
+    roomId: string;
   };
   totalPrice: number;
   totalWeight: number;
 }) => {
-  const { weight, payed, name, createdAt } = participant;
+  const { weight, payed, name, createdAt, role } = participant;
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
 
   return (
@@ -43,6 +44,18 @@ const UserParticipantView = ({
           <PaymentStatusTag payed={payed} />
           {participant.role === "owner" && <OwnerTag />}
         </div>
+        <div className="flex w-24 items-center justify-end">
+          {weight} <LiaPizzaSliceSolid />
+        </div>
+      </div>
+      <div>
+        {payed && participant.role != "owner" && (
+          <ParticipantTransactionViewer
+            participantId={participant.userParticipantId}
+            roomId={participant.roomId}
+            role={participant.role}
+          />
+        )}
       </div>
     </div>
   );

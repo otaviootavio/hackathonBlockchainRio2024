@@ -5,6 +5,7 @@ import { db } from "~/server/db";
 import { pusherServerClient } from "~/server/pusher";
 import axios from "axios";
 import { type WebhookEvent } from "@prisma/client";
+import { env } from "~/env";
 
 type WebhookPayload = z.infer<typeof webhookPayloadSchema>;
 
@@ -78,6 +79,14 @@ export class WebhookPayloadHandler implements WebhookHandler<WebhookPayload> {
 
   private async handleRoomPayment(webhookEvent: WebhookEvent): Promise<void> {
     if (webhookEvent.userId && webhookEvent.roomId) {
+      const payloadDetails = await this.fetchXummPayloadDetails(
+        webhookEvent.payloadId,
+      );
+
+      if (payloadDetails.response.dispatched_to_node !== true) {
+        return;
+      }
+
       await db.participant.updateMany({
         where: {
           userId: webhookEvent.userId,
@@ -102,6 +111,7 @@ export class WebhookPayloadHandler implements WebhookHandler<WebhookPayload> {
       const payloadDetails = await this.fetchXummPayloadDetails(
         webhookEvent.payloadId,
       );
+
       const userwallet = payloadDetails.response.account;
       await db.userProfile.upsert({
         where: { userId: webhookEvent.userId },
@@ -125,8 +135,8 @@ export class WebhookPayloadHandler implements WebhookHandler<WebhookPayload> {
         headers: {
           Accept: "application/json",
           "Content-Type": "application/json",
-          "X-API-Key": process.env.XUMM_API_KEY ?? "",
-          "X-API-Secret": process.env.XUMM_API_SECRET ?? "",
+          "X-API-Key": env.XUMM_API_KEY,
+          "X-API-Secret": env.XUMM_API_SECRET,
         },
       });
 
