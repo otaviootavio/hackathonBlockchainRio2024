@@ -1,4 +1,4 @@
-import ParticipantTransactionViewer from "../payment/ParticipantTransactionViewer";
+import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
 import OwnerTag from "./OwnerTag";
 import PaymentStatusTag from "./PaymentTagStatus";
 import RemoveButton from "./RemoveButton";
@@ -56,13 +56,7 @@ const AdminParticipantView = ({
         />
       </div>
       <div>
-        {payed && role != "owner" && (
-          <ParticipantTransactionViewer
-            participantId={userParticipantId}
-            roomId={participant.roomId}
-            role={role}
-          />
-        )}
+        <CompletedPaymentExplorer participantId={userParticipantId} />
       </div>
     </div>
   );

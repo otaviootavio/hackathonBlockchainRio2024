@@ -1,26 +1,40 @@
-import { type WebhookHandler, type WebhookResult } from "./WebhookService";
+import {
+  type PaymentWebhookHandler,
+  type PaymentWebhookResult,
+} from "./WebhookService";
 import { type z } from "zod";
 import { type webhookPayloadSchema, xummPayloadDetailsSchema } from "./schemas";
 import { db } from "~/server/db";
 import { pusherServerClient } from "~/server/pusher";
 import axios from "axios";
-import { type WebhookEvent } from "@prisma/client";
+import { type SignatureRequest, type Payment } from "@prisma/client";
 import { env } from "~/env";
 
 type WebhookPayload = z.infer<typeof webhookPayloadSchema>;
 
-export class WebhookPayloadHandler implements WebhookHandler<WebhookPayload> {
-  async handle(input: WebhookPayload): Promise<WebhookResult> {
+export class PaymentWebhookPayloadHandler implements PaymentWebhookHandler {
+  async handle(input: WebhookPayload): Promise<PaymentWebhookResult> {
     try {
-      const webhookEvent = await db.webhookEvent.findUnique({
+      const payment = await db.payment.findUnique({
         where: { payloadId: input.payloadResponse.payload_uuidv4 },
       });
 
-      if (!webhookEvent) {
-        return this.createNewWebhookEvent(input);
+      if (payment) {
+        return this.updatePaymentStatus(input, payment);
       }
 
-      return this.updateExistingWebhookEvent(input);
+      const signatureRequest = await db.signatureRequest.findUnique({
+        where: { payloadId: input.payloadResponse.payload_uuidv4 },
+      });
+
+      if (signatureRequest) {
+        return this.updateSignatureRequestStatus(input, signatureRequest);
+      }
+
+      return {
+        status: "error",
+        message: "No matching payment or signature request found",
+      };
     } catch (error) {
       console.error("Error handling webhook payload:", error);
       return {
@@ -31,97 +45,100 @@ export class WebhookPayloadHandler implements WebhookHandler<WebhookPayload> {
     }
   }
 
-  private async createNewWebhookEvent(
+  private async updateSignatureRequestStatus(
     input: WebhookPayload,
-  ): Promise<WebhookResult> {
-    const newWebhookEvent = await db.webhookEvent.create({
-      data: {
-        payloadId: input.payloadResponse.payload_uuidv4,
-        signed: input.payloadResponse.signed,
-        txid: input.payloadResponse.txid,
-        status: input.payloadResponse.signed ? "signed" : "rejected",
-      },
-    });
+    signatureRequest: SignatureRequest,
+  ): Promise<PaymentWebhookResult> {
+    const payloadDetails = await this.fetchXummPayloadDetails(
+      signatureRequest.payloadId,
+    );
 
-    return {
-      status: "success",
-      action: "created",
-      webhookEvent: newWebhookEvent,
-    };
-  }
+    const result = await db.$transaction(async (prisma) => {
+      const updatedSignatureRequest = await prisma.signatureRequest.update({
+        where: { id: signatureRequest.id },
+        data: {
+          status: input.payloadResponse.signed ? "COMPLETED" : "FAILED",
+          networkId: payloadDetails.response.environment_networkid.toString(),
+          transactionId: input.payloadResponse.txid ?? undefined,
+        },
+        include: { userProfile: true }, // Include the userProfile to get the userId
+      });
 
-  private async updateExistingWebhookEvent(
-    input: WebhookPayload,
-  ): Promise<WebhookResult> {
-    const updatedWebhookEvent: WebhookEvent = await db.webhookEvent.update({
-      where: { payloadId: input.payloadResponse.payload_uuidv4 },
-      data: {
-        signed: input.payloadResponse.signed,
-        txid: input.payloadResponse.txid,
-        status: input.payloadResponse.signed ? "signed" : "rejected",
-      },
-    });
-
-    if (input.payloadResponse.signed && updatedWebhookEvent.userId) {
-      if (updatedWebhookEvent.roomId) {
-        await this.handleRoomPayment(updatedWebhookEvent);
-      } else {
-        await this.handleWalletAttribution(updatedWebhookEvent);
+      if (input.payloadResponse.signed) {
+        // If the signature was successful, update the user's wallet
+        await prisma.userProfile.update({
+          where: { id: updatedSignatureRequest.userProfile.id },
+          data: {
+            wallet: payloadDetails.response.account,
+          },
+        });
       }
-    }
+
+      return updatedSignatureRequest;
+    });
+
+    await pusherServerClient.trigger(
+      `signature-request-${result.id}`,
+      "signature-request-updated",
+      {
+        signatureRequestId: result.id,
+        status: result.status,
+      },
+    );
 
     return {
       status: "success",
       action: "updated",
-      webhookEvent: updatedWebhookEvent,
+      data: result,
     };
   }
 
-  private async handleRoomPayment(webhookEvent: WebhookEvent): Promise<void> {
-    if (webhookEvent.userId && webhookEvent.roomId) {
-      const payloadDetails = await this.fetchXummPayloadDetails(
-        webhookEvent.payloadId,
-      );
+  private async updatePaymentStatus(
+    input: WebhookPayload,
+    payment: Payment,
+  ): Promise<PaymentWebhookResult> {
+    const payloadDetails = await this.fetchXummPayloadDetails(
+      payment.payloadId,
+    );
 
-      if (payloadDetails.response.dispatched_to_node !== true) {
-        return;
+    const result = await db.$transaction(async (prisma) => {
+      const updatedPayment = await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: input.payloadResponse.signed ? "COMPLETED" : "FAILED",
+          networkId: payloadDetails.response.environment_networkid.toString(),
+          transactionId: input.payloadResponse.txid ?? undefined,
+        },
+        include: { participant: true }, // Include the participant to get access to its id
+      });
+
+      if (input.payloadResponse.signed) {
+        // If the payment was successful, update the participant's payed status
+        await prisma.participant.update({
+          where: { id: updatedPayment.participant.id },
+          data: { payed: true },
+        });
       }
 
-      await db.participant.updateMany({
-        where: {
-          userId: webhookEvent.userId,
-          roomId: webhookEvent.roomId,
-        },
-        data: { payed: true },
-      });
-      await pusherServerClient.trigger(
-        `room-${webhookEvent.roomId}`,
-        `participant-payed`,
-        {
-          participantId: webhookEvent.userId,
-        },
-      );
-    }
-  }
+      return updatedPayment;
+    });
 
-  private async handleWalletAttribution(
-    webhookEvent: WebhookEvent,
-  ): Promise<void> {
-    if (webhookEvent.userId && webhookEvent.payloadId) {
-      const payloadDetails = await this.fetchXummPayloadDetails(
-        webhookEvent.payloadId,
-      );
+    await pusherServerClient.trigger(
+      `payment-${result.id}`,
+      "payment-updated",
+      {
+        paymentId: result.id,
+        status: result.status,
+        participantId: result.participant.id,
+        payed: input.payloadResponse.signed,
+      },
+    );
 
-      const userwallet = payloadDetails.response.account;
-      await db.userProfile.upsert({
-        where: { userId: webhookEvent.userId },
-        create: {
-          userId: webhookEvent.userId,
-          wallet: userwallet,
-        },
-        update: { wallet: userwallet },
-      });
-    }
+    return {
+      status: "success",
+      action: "updated",
+      data: result,
+    };
   }
 
   private async fetchXummPayloadDetails(payloadId: string) {

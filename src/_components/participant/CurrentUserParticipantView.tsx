@@ -2,13 +2,14 @@ import WeightAdjuster from "./WeightAdjuster";
 import PaymentStatusTag from "./PaymentTagStatus";
 import timeElapsedSince from "~/utils/dateFromNow";
 import OwnerTag from "./OwnerTag";
-import PaymentSection from "../payment/PaymentSection";
+import { PaymentFlow } from "../payment/PaymentFlow";
+import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
 
 const CurrentUserParticipantView = ({
   participant,
-  ownerAddress,
   room,
   totalPrice,
+  ownerAddress,
   totalWeight,
 }: {
   participant: {
@@ -29,16 +30,8 @@ const CurrentUserParticipantView = ({
   totalWeight: number;
   totalPrice: number;
 }) => {
-  const {
-    weight,
-    payed,
-    name,
-    userParticipantId,
-    userId,
-    roomId,
-    role,
-    createdAt,
-  } = participant;
+  const { weight, payed, name, userParticipantId, role, createdAt } =
+    participant;
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
 
   return (
@@ -60,6 +53,14 @@ const CurrentUserParticipantView = ({
         <div className="flex flex-row items-center justify-start gap-3">
           <PaymentStatusTag payed={payed} />
           {role === "owner" && <OwnerTag />}
+          {!participant.payed && (
+            <PaymentFlow
+              roomId={participant.roomId}
+              participantId={userParticipantId}
+              amount={amount}
+              destination={ownerAddress}
+            />
+          )}
         </div>
 
         <WeightAdjuster
@@ -70,16 +71,10 @@ const CurrentUserParticipantView = ({
           }
         />
       </div>
-      <div className="flex flex-col justify-start space-y-2 md:flex-row md:space-x-2 md:space-y-0">
-        <PaymentSection
-          roomId={roomId}
-          participantId={userParticipantId}
-          room={room}
-          payed={payed}
-          amount={amount}
-          ownerAddress={ownerAddress}
-          role={role}
-        />
+      <div>
+        {role !== "owner" && (
+          <CompletedPaymentExplorer participantId={userParticipantId} />
+        )}
       </div>
     </div>
   );

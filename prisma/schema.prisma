@@ -21,11 +21,12 @@ model User {
 }
 
 model UserProfile {
-    id     String  @id @default(cuid())
-    name   String?
-    wallet String?
-    userId String  @unique
-    user   User    @relation(fields: [userId], references: [id])
+    id               String             @id @default(cuid())
+    name             String?
+    wallet           String?
+    userId           String             @unique
+    user             User               @relation(fields: [userId], references: [id])
+    SignatureRequest SignatureRequest[]
 }
 
 // Necessary for Next auth
@@ -69,16 +70,17 @@ model Room {
 }
 
 model Participant {
-    id        String   @id @default(uuid())
+    id        String    @id @default(uuid())
     payed     Boolean
     role      String
     weight    Int
     roomId    String
     userId    String
-    createdAt DateTime @default(now())
-    room      Room     @relation(fields: [roomId], references: [id])
-    user      User     @relation(fields: [userId], references: [id])
+    createdAt DateTime  @default(now())
+    room      Room      @relation(fields: [roomId], references: [id])
+    user      User      @relation(fields: [userId], references: [id])
     profileId String
+    Payment   Payment[]
 }
 
 model VerificationToken {
@@ -89,15 +91,38 @@ model VerificationToken {
     @@unique([identifier, token])
 }
 
-model WebhookEvent {
-    id              String   @id @default(cuid())
-    payloadId       String   @unique
-    signed          Boolean?
-    txid            String?
-    status          String   @default("pending")
-    userId          String?
-    roomId          String?
-    dispachedToNode Boolean? @default(false)
-    createdAt       DateTime @default(now())
-    updatedAt       DateTime @updatedAt
+model Payment {
+    id            String        @id @default(cuid())
+    payloadId     String        @unique
+    participant   Participant   @relation(fields: [participantId], references: [id])
+    participantId String
+    status        PaymentStatus
+    networkId     String?
+    transactionId String?
+    createdAt     DateTime      @default(now())
+    updatedAt     DateTime      @updatedAt
+}
+
+enum PaymentStatus {
+    PENDING
+    COMPLETED
+    FAILED
+}
+
+model SignatureRequest {
+    id            String          @id @default(cuid())
+    payloadId     String          @unique
+    userProfile   UserProfile     @relation(fields: [userProfileId], references: [id])
+    userProfileId String
+    status        SignatureStatus
+    networkId     String?
+    transactionId String?
+    createdAt     DateTime        @default(now())
+    updatedAt     DateTime        @updatedAt
+}
+
+enum SignatureStatus {
+    PENDING
+    COMPLETED
+    FAILED
 }

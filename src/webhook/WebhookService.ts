@@ -1,34 +1,36 @@
 import { type z } from "zod";
 import { webhookPayloadSchema } from "./schemas";
-import { type WebhookEvent } from "@prisma/client";
+import {
+  type Participant,
+  type Payment,
+  type SignatureRequest,
+} from "@prisma/client";
 
 type WebhookPayload = z.infer<typeof webhookPayloadSchema>;
 
-export type WebhookResult =
+export type PaymentWebhookResult =
   | {
       status: "success";
-      action: "created" | "updated";
-      webhookEvent: WebhookEvent;
+      action: "updated";
+      data: (Payment & { participant: Participant }) | SignatureRequest;
     }
   | { status: "error"; message: string };
 
-export interface WebhookHandler<T> {
-  handle(input: T): Promise<WebhookResult>;
+export interface PaymentWebhookHandler {
+  handle(input: WebhookPayload): Promise<PaymentWebhookResult>;
 }
 
-export class WebhookService {
-  private handlers: {
-    webhook: WebhookHandler<WebhookPayload>;
-  };
+export class PaymentWebhookService {
+  private handler: PaymentWebhookHandler;
 
-  constructor(handlers: { webhook: WebhookHandler<WebhookPayload> }) {
-    this.handlers = handlers;
+  constructor(handler: PaymentWebhookHandler) {
+    this.handler = handler;
   }
 
-  async processWebhook(input: unknown): Promise<WebhookResult> {
+  async processWebhook(input: unknown): Promise<PaymentWebhookResult> {
     try {
       const webhookPayload = webhookPayloadSchema.parse(input);
-      return await this.handlers.webhook.handle(webhookPayload);
+      return await this.handler.handle(webhookPayload);
     } catch (error) {
       return {
         status: "error",

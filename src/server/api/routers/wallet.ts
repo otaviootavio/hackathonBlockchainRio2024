@@ -1,14 +1,11 @@
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 import axios from "axios";
 import { TRPCError } from "@trpc/server";
 import { env } from "~/env";
 import { db } from "~/server/db";
 import getUrl from "~/utils/getUrl";
+import { pusherServerClient } from "~/server/pusher";
 
 const XUMM_API_KEY = env.XUMM_API_KEY;
 const XUMM_API_SECRET = env.XUMM_API_SECRET;
@@ -84,11 +81,22 @@ export const xamanRouter = createTRPCRouter({
           response.data,
         );
 
-        await db.webhookEvent.create({
+        const userProfile = await db.userProfile.findUnique({
+          where: { userId: ctx.session.user.id },
+        });
+
+        if (!userProfile) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "User profile not found",
+          });
+        }
+
+        const signatureRequest = await db.signatureRequest.create({
           data: {
             payloadId: parsedResponse.uuid,
-            userId: ctx.session.user.id,
-            status: "pending",
+            userProfileId: userProfile.id,
+            status: "PENDING",
           },
         });
 
@@ -96,22 +104,91 @@ export const xamanRouter = createTRPCRouter({
           uuid: parsedResponse.uuid,
           next: parsedResponse.next.always,
           qrCodeUrl: parsedResponse.refs.qr_png,
+          signatureRequestId: signatureRequest.id,
         };
       } catch (e) {
         if (e instanceof Error) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: `Failed to retrieve payment status: ${e.message}`,
+            message: `Failed to create signature request: ${e.message}`,
             cause: e,
           });
         } else {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message:
-              "Failed to retrieve payment status due to an unknown error.",
+              "Failed to create signature request due to an unknown error.",
           });
         }
       }
+    }),
+
+  getSignatureRequestStatus: protectedProcedure
+    .input(z.object({ signatureRequestId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      const signatureRequest = await db.signatureRequest.findUnique({
+        where: { id: input.signatureRequestId },
+        include: { userProfile: true },
+      });
+
+      if (!signatureRequest) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Signature request not found",
+        });
+      }
+
+      if (signatureRequest.userProfile.userId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to view this signature request",
+        });
+      }
+
+      return {
+        status: signatureRequest.status,
+        networkId: signatureRequest.networkId,
+        transactionId: signatureRequest.transactionId,
+      };
+    }),
+  updateSignatureRequestStatus: protectedProcedure
+    .input(
+      z.object({
+        payloadId: z.string(),
+        status: z.enum(["COMPLETED", "FAILED"]),
+        networkId: z.string().optional(),
+        transactionId: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      const updatedSignatureRequest = await db.signatureRequest.update({
+        where: { payloadId: input.payloadId },
+        data: {
+          status: input.status,
+          networkId: input.networkId,
+          transactionId: input.transactionId,
+        },
+        include: { userProfile: true },
+      });
+
+      if (updatedSignatureRequest.userProfile.userId !== ctx.session.user.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You don't have permission to update this signature request",
+        });
+      }
+
+      // Notify frontend about the signature request update
+      await pusherServerClient.trigger(
+        `signature-request-${updatedSignatureRequest.id}`,
+        "signature-request-updated",
+        {
+          signatureRequestId: updatedSignatureRequest.id,
+          status: updatedSignatureRequest.status,
+        },
+      );
+
+      return updatedSignatureRequest;
     }),
 
   // Procedure to create a payment request
@@ -119,9 +196,9 @@ export const xamanRouter = createTRPCRouter({
     .input(
       z.object({
         roomId: z.string(),
+        participantId: z.string(),
         amount: z.string().min(1),
         destination: z.string().min(1),
-        destinationTag: z.string().optional(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -131,7 +208,6 @@ export const xamanRouter = createTRPCRouter({
           TransactionType: "Payment",
           Amount: input.amount,
           Destination: input.destination,
-          ...(input.destinationTag && { DestinationTag: input.destinationTag }),
         },
         options: {
           return_url: {
@@ -158,10 +234,19 @@ export const xamanRouter = createTRPCRouter({
           response.data,
         );
 
+        const payment = await db.payment.create({
+          data: {
+            payloadId: parsedResponse.uuid,
+            participantId: input.participantId,
+            status: "PENDING",
+          },
+        });
+
         return {
           uuid: parsedResponse.uuid,
           next: parsedResponse.next.always,
           qrCodeUrl: parsedResponse.refs.qr_png,
+          paymentId: payment.id,
         };
       } catch (e) {
         if (e instanceof Error) {
@@ -182,145 +267,52 @@ export const xamanRouter = createTRPCRouter({
 
   // Procedure to get the status of a payment request
   getPaymentStatus: protectedProcedure
-    .input(z.object({ uuid: z.string() }))
+    .input(z.object({ paymentId: z.string() }))
     .query(async ({ input }) => {
-      const url = `https://xumm.app/api/v1/platform/payload/${input.uuid}`;
+      const payment = await db.payment.findUnique({
+        where: { id: input.paymentId },
+      });
 
-      const options = {
-        method: "GET",
-        headers: {
-          accept: "application/json",
-          "Content-Type": "application/json",
-          "X-API-Key": XUMM_API_KEY,
-          "X-API-Secret": XUMM_API_SECRET,
-        },
-      };
-
-      try {
-        const response = await axios(url, options);
-        const parsedResponse = paymentStatusResponseSchema.parse(response.data);
-
-        return {
-          txid: parsedResponse.response.txid,
-          resolved_at: parsedResponse.response.resolved_at,
-          dispatched_result: parsedResponse.response.dispatched_result,
-          dispatched_to_node: parsedResponse.response.dispatched_to_node,
-          environment_networkid: parsedResponse.response.environment_networkid,
-        };
-      } catch (e) {
-        if (e instanceof Error) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: `Failed to retrieve payment status: ${e.message}`,
-            cause: e,
-          });
-        } else {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message:
-              "Failed to retrieve payment status due to an unknown error.",
-          });
-        }
+      if (!payment) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Payment not found",
+        });
       }
+
+      return {
+        status: payment.status,
+        networkId: payment.networkId,
+        transactionId: payment.transactionId,
+      };
     }),
-  createWebhookEvent: publicProcedure
+
+  updatePaymentStatus: protectedProcedure
     .input(
       z.object({
         payloadId: z.string(),
-        userId: z.string(),
-        roomId: z.string(),
+        status: z.enum(["COMPLETED", "FAILED"]),
+        networkId: z.string().optional(),
+        transactionId: z.string().optional(),
       }),
     )
     .mutation(async ({ input }) => {
-      try {
-        const webhookEvent = await db.webhookEvent.create({
-          data: {
-            payloadId: input.payloadId,
-            roomId: input.roomId,
-            userId: input.userId,
-            status: "pending",
-          },
-        });
+      const updatedPayment = await db.payment.update({
+        where: { payloadId: input.payloadId },
+        data: {
+          status: input.status,
+          networkId: input.networkId,
+          transactionId: input.transactionId,
+        },
+      });
 
-        return { status: "success", webhookEvent };
-      } catch (e) {
-        console.error("Failed to create webhook event:", e);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to create webhook event.",
-          cause: e,
-        });
-      }
-    }),
-  getSuccessfulWebhookEvents: protectedProcedure
-    .input(
-      z.object({
-        userId: z.string(),
-        roomId: z.string(),
-      }),
-    )
-    .query(async ({ input }) => {
-      try {
-        const successfulWebhookEvents = await db.webhookEvent.findMany({
-          where: {
-            userId: input.userId,
-            roomId: input.roomId,
-            status: "signed",
-          },
-        });
+      // Notify frontend about the payment update
+      await pusherServerClient.trigger(
+        `payment-${updatedPayment.id}`,
+        "payment-updated",
+        { paymentId: updatedPayment.id, status: updatedPayment.status },
+      );
 
-        return { status: "success", successfulWebhookEvents };
-      } catch (e) {
-        console.error("Failed to retrieve successful webhook events:", e);
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Failed to retrieve successful webhook events.",
-          cause: e,
-        });
-      }
-    }),
-
-  getSuccessfulWebhookEventsByParticipantId: protectedProcedure
-    .input(
-      z.object({
-        participantId: z.string(),
-        roomId: z.string(),
-      }),
-    )
-    .query(async ({ input, ctx }) => {
-      try {
-        const participant = await ctx.db.participant.findUnique({
-          where: { id: input.participantId },
-          select: { userId: true },
-        });
-
-        if (!participant) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Participant not found",
-          });
-        }
-
-        const successfulWebhookEvents = await ctx.db.webhookEvent.findMany({
-          where: {
-            userId: participant.userId,
-            roomId: input.roomId,
-            status: "signed",
-          },
-        });
-
-        return { status: "success", successfulWebhookEvents };
-      } catch (e) {
-        console.error(
-          "Failed to retrieve successful webhook events by participant id:",
-          e,
-        );
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message:
-            "Failed to retrieve successful webhook events by participant id.",
-          cause: e,
-        });
-      }
+      return updatedPayment;
     }),
 });
