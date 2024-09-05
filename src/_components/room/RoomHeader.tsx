@@ -3,23 +3,6 @@ import { RoomOpenAndClose } from "./RoomOpenAndClose";
 import { RoomLeave } from "./RoomLeave";
 import { useRoomContext } from "~/_context/room/RoomContext";
 
-interface Room {
-  name: string;
-  description: string;
-  isOpen: boolean;
-  totalPrice: number;
-  participants: {
-    payed: boolean;
-    role: string;
-    roomId: string;
-    userId: string;
-    weight: number;
-    name: string;
-    wallet: string | null;
-    userParticipantId: string;
-  }[];
-}
-
 export const RoomHeader = () => {
   const { roomData: room, isUserOwner, userProfile } = useRoomContext();
 

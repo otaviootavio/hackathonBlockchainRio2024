@@ -48,12 +48,15 @@ const UserParticipantView = ({
           {weight} <LiaPizzaSliceSolid />
         </div>
       </div>
-      <div>
-        {participant.role !== "owner" && (
-          <CompletedPaymentExplorer
-            participantId={participant.userParticipantId}
-          />
-        )}
+
+      <div className="flex flex-col justify-between">
+        <div>
+          {participant.role !== "owner" && (
+            <CompletedPaymentExplorer
+              participantId={participant.userParticipantId}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

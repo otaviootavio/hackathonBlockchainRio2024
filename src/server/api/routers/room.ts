@@ -194,10 +194,6 @@ export const roomRouter = createTRPCRouter({
       }
 
       return ctx.db.$transaction(async (prisma) => {
-        await prisma.participant.deleteMany({
-          where: { roomId: input.id },
-        });
-
         await pusherServerClient.trigger(
           `room-${input.id}`,
           "room-deleted",

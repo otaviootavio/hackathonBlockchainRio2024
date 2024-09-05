@@ -42,9 +42,9 @@ export const PaymentInitiator: React.FC<PaymentInitiatorProps> = ({
     <button
       onClick={handleInitiatePayment}
       disabled={isLoading}
-      className="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+      className="rounded bg-blue-500 px-2 py-1 text-xs font-bold text-white hover:bg-blue-700"
     >
-      {isLoading ? "Initiating..." : "Initiate Payment"}
+      {isLoading ? "Initiating..." : "Pay!"}
     </button>
   );
 };

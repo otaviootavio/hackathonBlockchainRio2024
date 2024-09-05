@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { PaymentInitiator } from "./PaymentInitiator";
-import { PaymentStatus } from "./PaymentStatus";
 import Link from "next/link";
+import { useRoomContext } from "~/_context/room/RoomContext";
 
 interface PaymentFlowProps {
   roomId: string;
@@ -16,6 +16,7 @@ export const PaymentFlow: React.FC<PaymentFlowProps> = ({
   amount,
   destination,
 }) => {
+  const { roomData: room } = useRoomContext();
   const [paymentId, setPaymentId] = useState<string | null>(null);
   const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
 
@@ -27,8 +28,10 @@ export const PaymentFlow: React.FC<PaymentFlowProps> = ({
     setPaymentUrl(newPaymentUrl);
   };
 
+  if (!room) return null;
+  if (!room.isReadyForSettlement) return null;
   return (
-    <div className="space-y-4">
+    <div>
       {!paymentId && (
         <PaymentInitiator
           roomId={roomId}
@@ -40,13 +43,12 @@ export const PaymentFlow: React.FC<PaymentFlowProps> = ({
       )}
       {paymentId && (
         <>
-          <PaymentStatus paymentId={paymentId} />
           {paymentUrl && (
             <Link
               href={paymentUrl}
-              className="mt-4 inline-block rounded bg-green-500 px-4 py-2 font-bold text-white hover:bg-green-700"
+              className="inline-block rounded bg-green-500 px-2 py-1 text-xs font-bold text-white hover:bg-green-700"
             >
-              Complete Payment in Xumm
+              Pay with XUMM!
             </Link>
           )}
         </>

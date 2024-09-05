@@ -72,7 +72,7 @@ const CurrentUserParticipantView = ({
         />
       </div>
       <div>
-        {role !== "owner" && (
+        {role !== "owner" && participant.payed && (
           <CompletedPaymentExplorer participantId={userParticipantId} />
         )}
       </div>

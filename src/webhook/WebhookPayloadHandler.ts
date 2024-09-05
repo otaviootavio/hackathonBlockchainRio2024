@@ -102,6 +102,7 @@ export class PaymentWebhookPayloadHandler implements PaymentWebhookHandler {
     );
 
     const result = await db.$transaction(async (prisma) => {
+      // include participant and room
       const updatedPayment = await prisma.payment.update({
         where: { id: payment.id },
         data: {
@@ -124,8 +125,8 @@ export class PaymentWebhookPayloadHandler implements PaymentWebhookHandler {
     });
 
     await pusherServerClient.trigger(
-      `payment-${result.id}`,
-      "payment-updated",
+      `room-${result.participant.roomId}`,
+      "participant-payed",
       {
         paymentId: result.id,
         status: result.status,

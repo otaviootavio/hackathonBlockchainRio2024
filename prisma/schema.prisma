@@ -77,7 +77,7 @@ model Participant {
     roomId    String
     userId    String
     createdAt DateTime  @default(now())
-    room      Room      @relation(fields: [roomId], references: [id])
+    room      Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
     user      User      @relation(fields: [userId], references: [id])
     profileId String
     Payment   Payment[]
@@ -94,7 +94,7 @@ model VerificationToken {
 model Payment {
     id            String        @id @default(cuid())
     payloadId     String        @unique
-    participant   Participant   @relation(fields: [participantId], references: [id])
+    participant   Participant   @relation(fields: [participantId], references: [id], onDelete: Cascade)
     participantId String
     status        PaymentStatus
     networkId     String?
