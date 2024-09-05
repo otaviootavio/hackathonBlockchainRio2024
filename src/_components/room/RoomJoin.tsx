@@ -1,16 +1,11 @@
 import React from "react";
+import { useRoomContext } from "~/_context/room/RoomContext";
 
-interface RoomOpenAndCloseProps {
-  room: {
-    isOpen: boolean;
-  };
-  joinRoom: () => void;
-}
+export const RoomJoin = () => {
+  const { roomData: room, joinRoom } = useRoomContext();
 
-export const RoomJoin: React.FC<RoomOpenAndCloseProps> = ({
-  room,
-  joinRoom,
-}) => {
+  if (!room) return null;
+
   return (
     <div className="mt-1 bg-slate-100 p-1">
       <div className="flex flex-row justify-center rounded-lg">

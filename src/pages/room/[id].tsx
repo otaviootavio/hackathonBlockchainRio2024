@@ -43,15 +43,12 @@ export async function getServerSideProps(
 }
 
 export function Room() {
-  const router = useRouter();
   const { data: session } = useSession();
   const {
     roomData,
     isRoomLoading,
-    isUserOwner,
+
     isUserParticipant,
-    hasEveryonePayed,
-    joinRoom,
   } = useRoomContext();
 
   if (isRoomLoading) {
@@ -74,46 +71,23 @@ export function Room() {
     return <div>Room not found</div>;
   }
 
-  const userParticipantData = roomData.participants.find(
-    (p: { userId: string }) => p.userId === session.user.id,
-  );
-
   if (!isUserParticipant) {
     return (
       <div className="flex h-screen flex-col items-center bg-blue-200">
         <div className="min-w-96">
           <div className="rounded-lg border-2 bg-white p-4">
-            <RoomJoin room={roomData} joinRoom={joinRoom} />
+            <RoomJoin />
           </div>
         </div>
       </div>
     );
   }
 
-  if (!userParticipantData) {
-    return <div>Error loading participant data</div>;
-  }
-
   return (
     <>
-      <RoomStatus
-        isUserOwner={isUserOwner}
-        room={roomData}
-        hasEveryonePayed={hasEveryonePayed}
-      />
-      <RoomHeader
-        room={roomData}
-        onBack={() => router.push("/rooms")}
-        isUserOwner={isUserOwner}
-        userParticipantData={userParticipantData}
-      />
-      <ParticipantsList
-        room={roomData}
-        isUserOwner={isUserOwner}
-        participants={roomData.participants}
-        isLoading={isRoomLoading}
-        totalPrice={roomData.totalPrice}
-      />
+      <RoomStatus />
+      <RoomHeader />
+      <ParticipantsList />
     </>
   );
 }

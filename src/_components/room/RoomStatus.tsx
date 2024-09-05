@@ -4,30 +4,14 @@ import { useRoomContext } from "~/_context/room/RoomContext";
 import { OwnerWalletNotFoundError } from "~/_errors/OwnerWalletNotFound";
 import { useModal } from "~/_hooks/useModal";
 
-interface RoomStatusProps {
-  room: {
-    isOpen: boolean;
-    isReadyForSettlement: boolean;
-    hasSettled: boolean;
-  };
-  hasEveryonePayed: boolean;
-  isUserOwner: boolean;
-}
-
-const RenderButton = ({
-  isUserOwner,
-  room,
-  hasEveryonePayed,
-}: {
-  hasEveryonePayed: boolean;
-  isUserOwner: boolean;
-  room: {
-    isOpen: boolean;
-    isReadyForSettlement: boolean;
-    hasSettled: boolean;
-  };
-}) => {
-  const { handleSetReadyForSettlement, handleSettleRoom } = useRoomContext();
+const RenderButton = () => {
+  const {
+    roomData: room,
+    hasEveryonePayed,
+    isUserOwner,
+    handleSetReadyForSettlement,
+    handleSettleRoom,
+  } = useRoomContext();
   const { showModal } = useModal();
 
   const handleClickToSettleRoom = async () => {
@@ -56,6 +40,10 @@ const RenderButton = ({
       }
     }
   };
+
+  if (!room) {
+    return <div>Loading...</div>;
+  }
 
   if (!isUserOwner) {
     return <></>;
@@ -90,49 +78,45 @@ const RenderButton = ({
   }
 };
 
-const RoomStatus: React.FC<RoomStatusProps> = ({
-  room,
-  hasEveryonePayed,
-  isUserOwner,
-}) => {
-  return (
-    <div className="p-2">
-      <div className="flex flex-col gap-2 rounded-md border border-slate-300 bg-slate-50 ">
-        <div className="flex flex-row items-center justify-between p-2">
-          <div>
-            <div className="text-xs  text-slate-600">Status:</div>
-            <strong>
-              {!room.isReadyForSettlement && !room.hasSettled && (
-                <>
-                  <h2>Eating Pizza!</h2>
-                </>
-              )}
-              {room.isReadyForSettlement && !room.hasSettled && (
-                <>
-                  <h2>Payment Time!</h2>
-                </>
-              )}
-              {room.hasSettled && (
-                <>
-                  <h2>This room is settled!</h2>
-                </>
-              )}
-            </strong>
-          </div>
+const RoomStatus = () => {
+  const { roomData: room } = useRoomContext();
 
-          <div>
-            <RenderButton
-              {...{
-                isUserOwner,
-                room,
-                hasEveryonePayed,
-              }}
-            />
+  if (!!room) {
+    return (
+      <div className="p-2">
+        <div className="flex flex-col gap-2 rounded-md border border-slate-300 bg-slate-50 ">
+          <div className="flex flex-row items-center justify-between p-2">
+            <div>
+              <div className="text-xs  text-slate-600">Status:</div>
+              <strong>
+                {!room.isReadyForSettlement && !room.hasSettled && (
+                  <>
+                    <h2>Eating Pizza!</h2>
+                  </>
+                )}
+                {room.isReadyForSettlement && !room.hasSettled && (
+                  <>
+                    <h2>Payment Time!</h2>
+                  </>
+                )}
+                {room.hasSettled && (
+                  <>
+                    <h2>This room is settled!</h2>
+                  </>
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <RenderButton />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  } else {
+    return <div>Loading...</div>;
+  }
 };
 
 export default RoomStatus;
