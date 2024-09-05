@@ -3,6 +3,7 @@ import { userProfileRouter } from "./routers/profile";
 import { participantRouter } from "./routers/participant";
 import { roomRouter } from "./routers/room";
 import { xamanRouter } from "./routers/wallet";
+import { paymentRouter } from "./routers/payment";
 
 /**
  * This is the primary router for your server.
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   room: roomRouter,
   participant: participantRouter,
   userProfile: userProfileRouter,
+  payment: paymentRouter,
 });
 
 // export type definition of API

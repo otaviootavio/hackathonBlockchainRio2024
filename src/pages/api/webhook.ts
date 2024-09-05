@@ -1,11 +1,11 @@
 import { type NextApiRequest, type NextApiResponse } from "next";
-import { WebhookService } from "~/webhook/WebhookService";
-import { WebhookPayloadHandler } from "~/webhook/WebhookPayloadHandler";
+import { PaymentWebhookService } from "~/webhook/WebhookService";
+import { PaymentWebhookPayloadHandler } from "~/webhook/WebhookPayloadHandler";
 import { z } from "zod";
 
-const webhookService = new WebhookService({
-  webhook: new WebhookPayloadHandler(),
-});
+const paymentWebhookService = new PaymentWebhookService(
+  new PaymentWebhookPayloadHandler(),
+);
 
 export default async function handler(
   req: NextApiRequest,
@@ -17,7 +17,7 @@ export default async function handler(
   }
 
   try {
-    const result = await webhookService.processWebhook(req.body);
+    const result = await paymentWebhookService.processWebhook(req.body);
     if (result.status === "success") {
       return res
         .status(200)

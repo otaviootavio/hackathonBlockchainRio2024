@@ -1,18 +1,13 @@
 import { useRoomContext } from "~/_context/room/RoomContext";
 
-export const RoomLeave = ({
-  userParticipantData,
-}: {
-  userParticipantData: {
-    payed: boolean;
-    role: string;
-    roomId: string;
-    userId: string;
-    weight: number;
-    userParticipantId: string;
-  };
-}) => {
-  const { removeParticipant } = useRoomContext();
+export const RoomLeave = () => {
+  const { removeParticipant, roomData: room } = useRoomContext();
+  const userParticipantData = room?.participants.find(
+    (p: { payed: boolean; role: string; roomId: string; userId: string }) =>
+      p.payed === false && p.role === "user",
+  );
+
+  if (!userParticipantData) return null;
 
   return (
     <div className="self-center">

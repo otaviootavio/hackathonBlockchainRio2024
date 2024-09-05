@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
   createTRPCRouter,
@@ -185,5 +186,53 @@ export const participantRouter = createTRPCRouter({
       );
 
       return res;
+    }),
+
+  getParticipantByParticipantId: protectedProcedure
+    .input(
+      z.object({
+        participantId: z.string(),
+        roomId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // First, check if the requesting user is in the room
+      const requestingUserInRoom = await ctx.db.participant.findFirst({
+        where: {
+          roomId: input.roomId,
+          userId: ctx.session.user.id,
+        },
+      });
+
+      if (!requestingUserInRoom) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message:
+            "You don't have permission to view information from this room",
+        });
+      }
+
+      // Now fetch the requested participant
+      const participant = await ctx.db.participant.findUnique({
+        where: {
+          id: input.participantId,
+          roomId: input.roomId,
+        },
+        include: {
+          Payment: {
+            orderBy: { createdAt: "desc" },
+            take: 1,
+          },
+        },
+      });
+
+      if (!participant) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Participant not found in the specified room",
+        });
+      }
+
+      return participant;
     }),
 });

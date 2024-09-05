@@ -3,42 +3,26 @@ import React from "react";
 import CurrentUserParticipantView from "./participant/CurrentUserParticipantView";
 import AdminParticipantView from "./participant/AdminParticipantView";
 import UserParticipantView from "./participant/UserParticipantView";
+import { useRoomContext } from "~/_context/room/RoomContext";
 
-export const ParticipantsList = ({
-  participants,
-  isLoading,
-  isUserOwner,
-  totalPrice,
-  room,
-}: {
-  participants: {
-    name: string;
-    wallet: string | null;
-    userParticipantId: string;
-    payed: boolean;
-    role: string;
-    roomId: string;
-    userId: string;
-    weight: number;
-    createdAt: Date;
-  }[];
-  room: {
-    isOpen: boolean;
-    isReadyForSettlement: boolean;
-    hasSettled: boolean;
-    id: string;
-    totalPrice: number;
-  };
-  isLoading: boolean;
-  isUserOwner: boolean;
-  totalPrice: number;
-}) => {
+export const ParticipantsList = () => {
+  const {
+    roomData: room,
+    isUserOwner,
+    isRoomLoading: isLoading,
+  } = useRoomContext();
   const session = useSession();
+
+  const participants = room?.participants ?? [];
 
   const ownerAddress =
     participants.find((p) => p.role === "owner")?.wallet ?? "";
   const currentUserId = session.data?.user?.id;
   const totalWeight = participants.reduce((acc, curr) => acc + curr.weight, 0);
+
+  const totalPrice = room?.totalPrice ?? 0;
+
+  if (!room) return null;
 
   if (isLoading) {
     return <div>Loading...</div>;

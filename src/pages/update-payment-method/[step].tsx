@@ -44,7 +44,6 @@ const StepOne = ({
 );
 
 const StepTwo = ({ toUrl }: { toUrl: string | null }) => {
-  console.log("toUrl:", toUrl);
   return (
     <div className="flex flex-col gap-4">
       <h2 className="text-xl font-bold">Sign the Request</h2>
@@ -97,7 +96,6 @@ const UpdatePaymentMethod = () => {
     e.preventDefault();
     const returnUrl = `/update-payment-method/3`;
     const res = await createSignRequest(returnUrl, "wallet_change");
-    console.log("res", res);
     await router.push(
       `/update-payment-method/2?toUrl=${encodeURIComponent(res?.next ?? "")}`,
     );

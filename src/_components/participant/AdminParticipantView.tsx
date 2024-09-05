@@ -1,3 +1,4 @@
+import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
 import OwnerTag from "./OwnerTag";
 import PaymentStatusTag from "./PaymentTagStatus";
 import RemoveButton from "./RemoveButton";
@@ -53,6 +54,9 @@ const AdminParticipantView = ({
           weight={weight}
           canUserEditThisParticipantWeight={true}
         />
+      </div>
+      <div>
+        <CompletedPaymentExplorer participantId={userParticipantId} />
       </div>
     </div>
   );

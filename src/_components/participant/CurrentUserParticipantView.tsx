@@ -1,17 +1,15 @@
-import { api } from "~/utils/api";
 import WeightAdjuster from "./WeightAdjuster";
-import { useSubscribeToEvent } from "~/_hooks";
 import PaymentStatusTag from "./PaymentTagStatus";
 import timeElapsedSince from "~/utils/dateFromNow";
 import OwnerTag from "./OwnerTag";
-import PayAmountToAddress from "../payment/PayAmountToAddress";
-import PaymentStatusResult from "../payment/PaymentStatusResult";
+import { PaymentFlow } from "../payment/PaymentFlow";
+import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
 
 const CurrentUserParticipantView = ({
   participant,
-  ownerAddress,
   room,
   totalPrice,
+  ownerAddress,
   totalWeight,
 }: {
   participant: {
@@ -32,34 +30,9 @@ const CurrentUserParticipantView = ({
   totalWeight: number;
   totalPrice: number;
 }) => {
-  const {
-    weight,
-    payed,
-    name,
-    userParticipantId,
-    userId,
-    roomId,
-    role,
-    createdAt,
-  } = participant;
+  const { weight, payed, name, userParticipantId, role, createdAt } =
+    participant;
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
-
-  const {
-    data: webhookEvents,
-    isLoading,
-    error,
-    refetch,
-  } = api.xaman.getSuccessfulWebhookEvents.useQuery({
-    userId,
-    roomId: roomId ?? "",
-  });
-
-  useSubscribeToEvent("participant-payed", () => {
-    refetch().catch(console.error);
-  });
-
-  const noPaymentsConfirmed =
-    webhookEvents?.successfulWebhookEvents.length === 0;
 
   return (
     <div className="flex flex-col justify-between rounded border border-slate-500 bg-slate-50 p-4">
@@ -80,6 +53,14 @@ const CurrentUserParticipantView = ({
         <div className="flex flex-row items-center justify-start gap-3">
           <PaymentStatusTag payed={payed} />
           {role === "owner" && <OwnerTag />}
+          {!participant.payed && (
+            <PaymentFlow
+              roomId={participant.roomId}
+              participantId={userParticipantId}
+              amount={amount}
+              destination={ownerAddress}
+            />
+          )}
         </div>
 
         <WeightAdjuster
@@ -90,35 +71,13 @@ const CurrentUserParticipantView = ({
           }
         />
       </div>
-      <div className="flex flex-col justify-start space-y-2 md:flex-row md:space-x-2 md:space-y-0">
-        {renderPaymentSection()}
+      <div>
+        {role !== "owner" && participant.payed && (
+          <CompletedPaymentExplorer participantId={userParticipantId} />
+        )}
       </div>
     </div>
   );
-
-  function renderPaymentSection() {
-    if (isLoading) return <p>Loading webhook events...</p>;
-    if (error) return <p>Error loading webhook events: {error.message}</p>;
-
-    return (
-      <>
-        {room.isReadyForSettlement && noPaymentsConfirmed && !payed && (
-          <PayAmountToAddress amount={amount} address={ownerAddress} />
-        )}
-        {webhookEvents && (
-          <ul>
-            {webhookEvents.successfulWebhookEvents.map((event) => (
-              <li key={event.id}>
-                {event.payloadId && (
-                  <PaymentStatusResult uuid={event.payloadId} />
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
-      </>
-    );
-  }
 };
 
 export default CurrentUserParticipantView;

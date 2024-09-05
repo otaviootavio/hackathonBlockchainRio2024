@@ -1,46 +1,12 @@
 import React from "react";
 import { RoomOpenAndClose } from "./RoomOpenAndClose";
 import { RoomLeave } from "./RoomLeave";
+import { useRoomContext } from "~/_context/room/RoomContext";
 
-interface Room {
-  name: string;
-  description: string;
-  isOpen: boolean;
-  totalPrice: number;
-  participants: {
-    payed: boolean;
-    role: string;
-    roomId: string;
-    userId: string;
-    weight: number;
-    name: string;
-    wallet: string | null;
-    userParticipantId: string;
-  }[];
-}
+export const RoomHeader = () => {
+  const { roomData: room, isUserOwner, userProfile } = useRoomContext();
 
-interface RoomHeaderProps {
-  room: Room;
-  onBack: () => void;
-  isUserOwner: boolean;
-  userParticipantData: {
-    payed: boolean;
-    role: string;
-    roomId: string;
-    userId: string;
-    weight: number;
-    name: string;
-    wallet: string | null;
-    userParticipantId: string;
-  };
-}
-
-export const RoomHeader: React.FC<RoomHeaderProps> = ({
-  room,
-  isUserOwner,
-  userParticipantData,
-}) => {
-  const isOpen = room?.isOpen ?? false;
+  if (!room || !userProfile) return null;
 
   return (
     <div className="p-2">
@@ -50,13 +16,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
             <div className="text-xs  text-slate-600">Room Name:</div>
             <h2 className="text-2xl font-bold">{room.name}</h2>
           </div>
-          <div>
-            {isUserOwner ? (
-              <RoomOpenAndClose isOpen={isOpen} />
-            ) : (
-              <RoomLeave userParticipantData={userParticipantData} />
-            )}
-          </div>
+          <div>{isUserOwner ? <RoomOpenAndClose /> : <RoomLeave />}</div>
         </div>
         <div className="flex flex-col items-start ">
           <div className="text-xs  text-slate-600">Description:</div>
