@@ -1,13 +1,15 @@
-import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
-import OwnerTag from "./OwnerTag";
-import PaymentStatusTag from "./PaymentTagStatus";
-import RemoveButton from "./RemoveButton";
 import WeightAdjuster from "./WeightAdjuster";
+import PaymentStatusTag from "./PaymentTagStatus";
 import timeElapsedSince from "~/utils/dateFromNow";
+import OwnerTag from "./OwnerTag";
+import { PaymentFlow } from "../payment/PaymentFlow";
+import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
 
-const AdminParticipantView = ({
+const UserViewsHimself = ({
   participant,
+  room,
   totalPrice,
+  ownerAddress,
   totalWeight,
 }: {
   participant: {
@@ -20,15 +22,20 @@ const AdminParticipantView = ({
     name: string;
     createdAt: Date;
   };
-  totalPrice: number;
+  ownerAddress: string;
+  room: {
+    isReadyForSettlement: boolean;
+    hasSettled: boolean;
+  };
   totalWeight: number;
+  totalPrice: number;
 }) => {
-  const { weight, payed, userParticipantId, name, role, createdAt } =
+  const { weight, payed, name, userParticipantId, role, createdAt } =
     participant;
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
 
   return (
-    <div className="flex flex-col justify-start rounded border border-slate-300 bg-slate-50 p-4">
+    <div className="flex flex-col justify-between rounded border border-slate-500 bg-slate-50 p-4">
       <div className="flex flex-row">
         <div className="flex grow flex-row justify-between">
           <p className="text-xs text-slate-600">
@@ -46,20 +53,31 @@ const AdminParticipantView = ({
         <div className="flex flex-row items-center justify-start gap-3">
           <PaymentStatusTag payed={payed} />
           {role === "owner" && <OwnerTag />}
-          <RemoveButton participantId={userParticipantId} />
+          {!participant.payed && (
+            <PaymentFlow
+              roomId={participant.roomId}
+              participantId={userParticipantId}
+              amount={amount}
+              destination={ownerAddress}
+            />
+          )}
         </div>
 
         <WeightAdjuster
           participantId={userParticipantId}
           weight={weight}
-          canUserEditThisParticipantWeight={true}
+          canUserEditThisParticipantWeight={
+            !room.isReadyForSettlement && !room.hasSettled
+          }
         />
       </div>
       <div>
-        <CompletedPaymentExplorer participantId={userParticipantId} />
+        {role !== "owner" && participant.payed && (
+          <CompletedPaymentExplorer participantId={userParticipantId} />
+        )}
       </div>
     </div>
   );
 };
 
-export default AdminParticipantView;
+export default UserViewsHimself;

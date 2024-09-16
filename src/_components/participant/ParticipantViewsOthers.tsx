@@ -4,7 +4,7 @@ import OwnerTag from "./OwnerTag";
 import { LiaPizzaSliceSolid } from "react-icons/lia";
 import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
 
-const UserParticipantView = ({
+const ParticipantViewsOthers = ({
   participant,
   totalPrice,
   totalWeight,
@@ -62,4 +62,4 @@ const UserParticipantView = ({
   );
 };
 
-export default UserParticipantView;
+export default ParticipantViewsOthers;

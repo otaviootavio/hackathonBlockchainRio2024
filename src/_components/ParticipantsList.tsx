@@ -1,9 +1,9 @@
 import { useSession } from "next-auth/react";
 import React from "react";
-import CurrentUserParticipantView from "./participant/CurrentUserParticipantView";
-import AdminParticipantView from "./participant/AdminParticipantView";
-import UserParticipantView from "./participant/UserParticipantView";
+import ParticipantViewsOthers from "./participant/ParticipantViewsOthers";
 import { useRoomContext } from "~/_context/room/RoomContext";
+import UserViewsHimself from "./participant/UserViewsHimself";
+import AdminViewsParticipant from "./participant/AdminViewsParticipant";
 
 export const ParticipantsList = () => {
   const {
@@ -49,7 +49,7 @@ export const ParticipantsList = () => {
       <div className="flex flex-col gap-1">
         {currentUserParticipant && (
           <div key={currentUserParticipant.userParticipantId} className="p-2">
-            <CurrentUserParticipantView
+            <UserViewsHimself
               participant={currentUserParticipant}
               ownerAddress={ownerAddress}
               room={room}
@@ -61,7 +61,7 @@ export const ParticipantsList = () => {
         {participantsToRender.map((participant) => {
           return (
             <div key={participant.userParticipantId} className="p-2">
-              <AdminParticipantView
+              <AdminViewsParticipant
                 participant={participant}
                 totalPrice={totalPrice}
                 totalWeight={totalWeight}
@@ -77,7 +77,7 @@ export const ParticipantsList = () => {
     <div className="flex flex-col gap-1">
       {currentUserParticipant && (
         <div key={currentUserParticipant.userParticipantId} className="p-2">
-          <CurrentUserParticipantView
+          <UserViewsHimself
             participant={currentUserParticipant}
             ownerAddress={ownerAddress}
             room={room}
@@ -89,7 +89,7 @@ export const ParticipantsList = () => {
       {participantsToRender.map((participant) => {
         return (
           <div key={participant.userParticipantId} className="p-2">
-            <UserParticipantView
+            <ParticipantViewsOthers
               participant={participant}
               totalPrice={totalPrice}
               totalWeight={totalWeight}
