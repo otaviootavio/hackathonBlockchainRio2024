@@ -1,57 +1,81 @@
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
+import { GetServerSideProps } from "next";
+import { getSession } from "next-auth/react";
 
-export default function Home() {
-  const { status } = useSession();
+type HomeProps = {
+  isAuthenticated: boolean;
+};
+
+export default function Home({ isAuthenticated }: HomeProps) {
   const router = useRouter();
 
   return (
-    <div className="flex grow flex-col justify-center">
-      <div className="flex flex-col">
+    <Card className="w-full">
+      <CardHeader>
+        <CardTitle className="text-center text-6xl">
+          <div>Welcome to XRPizza</div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col items-center space-y-6">
         <div className="self-center">
           <Image
             src="/undraw_pizza_sharing_wxop.svg"
             alt="logo"
-            width={400}
-            height={400}
+            width={300}
+            height={300}
           />
         </div>
-        <div className="flex flex-row items-center justify-center ">
-          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent sm:text-[4rem]">
-            Welcome to
-          </div>
-        </div>
-        <div className="flex  flex-row items-center justify-center ">
-          <div className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent sm:text-[4rem]">
-            XRPizza
-          </div>
-          <div className="mx-4">
-            {status === "authenticated" ? (
-              <button
-                className="transform rounded-full bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2 font-semibold text-white transition-transform hover:scale-105"
-                onClick={() => void router.push("/rooms")}
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="default"
+                onClick={() => {
+                  if (isAuthenticated) {
+                    void router.push("/rooms");
+                  } else {
+                    void signIn();
+                  }
+                }}
               >
-                Go to rooms
-              </button>
-            ) : status === "unauthenticated" ? (
-              <button
-                className="transform rounded-full bg-gradient-to-r from-green-400 to-blue-500 px-10 py-3 font-semibold text-white transition-transform hover:scale-105"
-                onClick={() => void signIn()}
-              >
-                Sign in!
-              </button>
-            ) : (
-              <button className="rounded-full bg-gradient-to-r from-gray-400 to-gray-600 px-10 py-3 font-semibold text-white">
-                Loading...
-              </button>
-            )}
-          </div>
-        </div>
-        <div className="mt-3 flex flex-row items-center justify-center text-center text-2xl text-slate-600">
+                {isAuthenticated ? "Go to rooms" : "Sign in!"}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>
+                {isAuthenticated
+                  ? "View available rooms"
+                  : "Sign in to get started"}
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <p className="text-muted-foreground text-center text-xl">
           Split your pizza orders empowered by XRP!
-        </div>
-      </div>
-    </div>
+        </p>
+      </CardContent>
+    </Card>
   );
 }
+
+export const getServerSideProps: GetServerSideProps<HomeProps> = async (
+  context,
+) => {
+  const session = await getSession(context);
+
+  return {
+    props: {
+      isAuthenticated: !!session,
+    },
+  };
+};
