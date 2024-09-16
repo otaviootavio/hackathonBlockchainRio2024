@@ -9,7 +9,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";
-import { GetServerSideProps } from "next";
+import { type GetServerSideProps } from "next";
 import { getSession } from "next-auth/react";
 
 type HomeProps = {

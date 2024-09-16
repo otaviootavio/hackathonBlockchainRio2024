@@ -2,32 +2,26 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import timeElapsedSince from "~/utils/dateFromNow";
+import { Button } from "~/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "~/components/ui/alert-dialog";
 
-export function Room({
-  room = {
-    name: "Unknown Room",
-    description: "",
-    id: "",
-    createdAt: new Date("2022-01-01"),
-    participants: [
-      {
-        id: "",
-        payed: false,
-        role: "Unknown Role",
-        weight: 0,
-        roomId: "",
-        userId: "",
-        profileId: "",
-      },
-    ],
-  },
-}: {
+type RoomProps = {
   room: {
     name: string;
     description: string;
     id: string;
     createdAt: Date;
-    participants: {
+    participants: Array<{
       id: string;
       payed: boolean;
       role: string;
@@ -35,9 +29,11 @@ export function Room({
       roomId: string;
       userId: string;
       profileId: string;
-    }[];
+    }>;
   };
-}) {
+};
+
+export function Room({ room }: RoomProps) {
   const router = useRouter();
   const session = useSession();
   const deleteRoom = api.room.deleteRoom.useMutation();
@@ -57,34 +53,49 @@ export function Room({
     await rooms.refetch();
   };
 
-  const handleClick = async () => {
-    await router.push(`/room/${room.id}`);
+  const handleViewRoom = () => {
+    void router.push(`/room/${room.id}`);
   };
 
   return (
-    <div className="flex flex-row justify-between">
-      <article className="text-wrap break-all">
-        <h2 className="text-2xl font-bold">{room.name}</h2>
-        <p className="text-lg">{room.description}</p>
-        <p className="text-xs text-slate-500">
-          {timeElapsedSince(room.createdAt)}
-        </p>
-      </article>
-      <div className="flex flex-col justify-around gap-2">
-        <button
-          onClick={handleClick}
-          className="rounded-xl border border-gray-300 bg-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-300"
-        >
-          View
-        </button>
-        {roomOwner?.userId === session.data?.user?.id && (
-          <button
-            onClick={handleDeleteRoom}
-            className="rounded-xl border border-gray-300 bg-red-200 px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-300"
-          >
-            Delete
-          </button>
-        )}
+    <div className="border-b border-gray-200 py-4 last:border-b-0">
+      <div className="flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">{room.name}</h3>
+          <p className="text-sm text-muted-foreground">{room.description}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Created {timeElapsedSince(room.createdAt)}
+          </p>
+        </div>
+        <div className="flex space-x-2">
+          <Button variant="outline" size="sm" onClick={handleViewRoom}>
+            View
+          </Button>
+          {roomOwner?.userId === session.data?.user?.id && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete
+                    the room.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDeleteRoom}>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
       </div>
     </div>
   );

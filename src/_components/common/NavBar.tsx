@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 
 export function NavBar() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const {  status } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
