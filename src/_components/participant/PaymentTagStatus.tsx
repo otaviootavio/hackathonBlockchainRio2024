@@ -1,22 +1,28 @@
 import { TbCashBanknoteOff, TbCashBanknote } from "react-icons/tb";
+import { Badge } from "~/components/ui/badge";
+import { cn } from "~/lib/utils";
 
 const PaymentStatusTag = ({ payed }: { payed: boolean }) => {
   return (
-    <div
-      className={`inline-flex  items-center justify-start whitespace-nowrap text-sm font-bold ${payed ? "text-green-500" : "text-red-500"}`}
+    <Badge 
+      variant={payed ? "default" : "destructive"} 
+      className={cn(
+        "flex items-center",
+        payed ? "bg-green-500 hover:bg-green-600" : ""
+      )}
     >
       {payed ? (
         <>
           <TbCashBanknote className="mr-1" />
-          Payed
+          Paid
         </>
       ) : (
         <>
           <TbCashBanknoteOff className="mr-1" />
-          Not Payed
+          Not Paid
         </>
       )}
-    </div>
+    </Badge>
   );
 };
 

@@ -2,6 +2,7 @@ import React from "react";
 import { RoomOpenAndClose } from "./RoomOpenAndClose";
 import { RoomLeave } from "./RoomLeave";
 import { useRoomContext } from "~/_context/room/RoomContext";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 
 export const RoomHeader = () => {
   const { roomData: room, isUserOwner, userProfile } = useRoomContext();
@@ -9,26 +10,15 @@ export const RoomHeader = () => {
   if (!room || !userProfile) return null;
 
   return (
-    <div className="p-2">
-      <div className=" flex flex-col gap-1 rounded-md border border-slate-300 bg-slate-50 p-2">
-        <div className="flex flex-row items-center justify-between">
-          <div>
-            <div className="text-xs  text-slate-600">Room Name:</div>
-            <h2 className="text-2xl font-bold">{room.name}</h2>
-          </div>
-          <div>{isUserOwner ? <RoomOpenAndClose /> : <RoomLeave />}</div>
-        </div>
-        <div className="flex flex-col items-start ">
-          <div className="text-xs  text-slate-600">Description:</div>
-          <p className="text-lg text-slate-900">{room.description}</p>
-        </div>
-        <div className="flex flex-col items-start ">
-          <div className="text-xs  text-slate-600">Ammount:</div>
-          <div className="text-wrap break-all text-sm">
-            {room?.totalPrice} XRP
-          </div>
-        </div>
-      </div>
-    </div>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>{room.name}</CardTitle>
+        <div>{isUserOwner ? <RoomOpenAndClose /> : <RoomLeave />}</div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground mb-2">{room.description}</p>
+        <p className="font-semibold">Amount: {room?.totalPrice} XRP</p>
+      </CardContent>
+    </Card>
   );
 };

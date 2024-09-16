@@ -9,6 +9,8 @@ import { RoomJoin } from "~/_components/room/RoomJoin";
 import RoomStatus from "~/_components/room/RoomStatus";
 import { RoomHeader } from "~/_components/room/RoomHeader";
 import { ModalProvider } from "~/_context/ui/ModalProvider";
+import { Card, CardContent } from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
 
 export async function getServerSideProps(
   context: GetSessionParams | undefined,
@@ -44,51 +46,44 @@ export async function getServerSideProps(
 
 export function Room() {
   const { data: session } = useSession();
-  const {
-    roomData,
-    isRoomLoading,
-
-    isUserParticipant,
-  } = useRoomContext();
+  const { roomData, isRoomLoading, isUserParticipant } = useRoomContext();
 
   if (isRoomLoading) {
     return (
-      <div className="flex h-screen flex-col items-center bg-blue-200">
-        <div className="min-w-96 gap-4">
-          <div className="rounded-lg border-2 bg-white p-4">
-            <div>Loading...</div>
-          </div>
-        </div>
-      </div>
+      <Card className="w-full max-w-md mx-auto mt-8">
+        <CardContent className="p-6">
+          <Skeleton className="w-full h-8 mb-4" />
+          <Skeleton className="w-3/4 h-4 mb-2" />
+          <Skeleton className="w-1/2 h-4" />
+        </CardContent>
+      </Card>
     );
   }
 
   if (!session?.user?.name) {
-    return <div>Please sign in to join the room</div>;
+    return <Card className="p-6">Please sign in to join the room</Card>;
   }
 
   if (!roomData) {
-    return <div>Room not found</div>;
+    return <Card className="p-6">Room not found</Card>;
   }
 
   if (!isUserParticipant) {
     return (
-      <div className="flex h-screen flex-col items-center bg-blue-200">
-        <div className="min-w-96">
-          <div className="rounded-lg border-2 bg-white p-4">
-            <RoomJoin />
-          </div>
-        </div>
-      </div>
+      <Card className="w-full max-w-md mx-auto mt-8">
+        <CardContent className="p-6">
+          <RoomJoin />
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <>
+    <div className="space-y-4">
       <RoomStatus />
       <RoomHeader />
       <ParticipantsList />
-    </>
+    </div>
   );
 }
 

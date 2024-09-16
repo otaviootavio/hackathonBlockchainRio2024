@@ -3,6 +3,15 @@ import PaymentStatusTag from "./PaymentTagStatus";
 import OwnerTag from "./OwnerTag";
 import { LiaPizzaSliceSolid } from "react-icons/lia";
 import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+  CardDescription,
+} from "~/components/ui/card";
+import { Badge } from "~/components/ui/badge";
 
 const ParticipantViewsOthers = ({
   participant,
@@ -21,44 +30,38 @@ const ParticipantViewsOthers = ({
   totalPrice: number;
   totalWeight: number;
 }) => {
-  const { weight, payed, name, createdAt } = participant;
+  const { weight, payed, name, createdAt, role } = participant;
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
 
   return (
-    <div className=" flex flex-col justify-between rounded border border-slate-300 bg-slate-50 p-4">
-      <div className="flex flex-row">
-        <div className="flex grow flex-row  justify-between">
-          <p className="text-xs text-slate-600">
-            Joined {timeElapsedSince(createdAt)}
-          </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>{name}</span>
+          <span>{amount} XRP</span>
+        </CardTitle>
+        <CardDescription>Joined {timeElapsedSince(createdAt)}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <PaymentStatusTag payed={payed} />
+            {role === "owner" && <OwnerTag />}
+          </div>
+          <Badge variant="outline" className="flex items-center space-x-1">
+            <span>{weight}</span>
+            <LiaPizzaSliceSolid />
+          </Badge>
         </div>
-      </div>
-
-      <div className="flex grow  flex-row justify-between">
-        <h2 className="text-2xl font-bold">{name}</h2>
-        <div className="self-center p-2 text-right">{amount}</div>
-      </div>
-
-      <div className="flex grow flex-row justify-between">
-        <div className="flex flex-row content-center items-center justify-start gap-3">
-          <PaymentStatusTag payed={payed} />
-          {participant.role === "owner" && <OwnerTag />}
-        </div>
-        <div className="flex w-24 items-center justify-end">
-          {weight} <LiaPizzaSliceSolid />
-        </div>
-      </div>
-
-      <div className="flex flex-col justify-between">
-        <div>
-          {participant.role !== "owner" && (
-            <CompletedPaymentExplorer
-              participantId={participant.userParticipantId}
-            />
-          )}
-        </div>
-      </div>
-    </div>
+      </CardContent>
+      <CardFooter>
+        {role !== "owner" && (
+          <CompletedPaymentExplorer
+            participantId={participant.userParticipantId}
+          />
+        )}
+      </CardFooter>
+    </Card>
   );
 };
 
