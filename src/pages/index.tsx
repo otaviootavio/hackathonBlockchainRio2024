@@ -51,16 +51,9 @@ export default function Home({ isAuthenticated }: HomeProps) {
                 {isAuthenticated ? "Go to rooms" : "Sign in!"}
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>
-                {isAuthenticated
-                  ? "View available rooms"
-                  : "Sign in to get started"}
-              </p>
-            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        <p className="text-muted-foreground text-center text-xl">
+        <p className="text-center text-xl text-muted-foreground">
           Split your pizza orders empowered by XRP!
         </p>
       </CardContent>

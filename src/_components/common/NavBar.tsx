@@ -13,7 +13,7 @@ import { useState, useEffect } from "react";
 
 export function NavBar() {
   const router = useRouter();
-  const {  status } = useSession();
+  const { status } = useSession();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export function NavBar() {
   }
 
   return (
-    <nav className="bg-background mb-2">
+    <nav className="mb-2 bg-background">
       <div className="mx-auto flex max-w-screen-xl flex-wrap items-center justify-between p-4">
         <Link
           href="/"
@@ -44,10 +44,14 @@ export function NavBar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem>
-                  <Link href="/rooms">Rooms</Link>
+                  <Link href="/rooms" className="flex-grow">
+                    Rooms
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
-                  <Link href="/profile">Edit Profile</Link>
+                  <Link href="/profile" className="flex-grow">
+                    Edit Profile
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <button
