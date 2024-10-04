@@ -1,26 +1,35 @@
-"use client"
+import { getSession } from "next-auth/react";
+import { type GetServerSideProps } from "next";
 
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
-import { Button } from "~/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "~/components/ui/card"
-import { Input } from "~/components/ui/input"
-import { Label } from "~/components/ui/label"
-import { Textarea } from "~/components/ui/textarea"
-import { api } from "~/utils/api"
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
+import { useState } from "react";
+import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Label } from "~/components/ui/label";
+import { Textarea } from "~/components/ui/textarea";
+import { api } from "~/utils/api";
+import { db } from "~/server/db";
 
 export default function NewRoom() {
-  const [name, setName] = useState("")
-  const [totalPrice, setTotalPrice] = useState<number>(0)
-  const [description, setDescription] = useState("")
-  const [participantPayed] = useState(true)
-  const createRoom = api.room.createRoom.useMutation()
-  const router = useRouter()
-  const session = useSession()
+  const [name, setName] = useState("");
+  const [totalPrice, setTotalPrice] = useState<number>(0);
+  const [description, setDescription] = useState("");
+  const [participantPayed] = useState(true);
+  const createRoom = api.room.createRoom.useMutation();
+  const router = useRouter();
+  const session = useSession();
   const userProfile = api.userProfile.getUserProfileByUserId.useQuery({
     userId: session.data?.user?.id ?? "",
-  })
+  });
 
   const handleSubmit = async () => {
     await createRoom
@@ -34,19 +43,9 @@ export default function NewRoom() {
         profileId: userProfile.data?.id ?? "",
       })
       .then(async () => {
-        await router.push("/rooms")
-      })
-  }
-
-  if (session.status === "unauthenticated") {
-    router.push("/")
-    return null
-  }
-
-  if (!userProfile.data) {
-    router.push("/profile")
-    return null
-  }
+        await router.push("/rooms");
+      });
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -54,7 +53,8 @@ export default function NewRoom() {
         <CardHeader>
           <CardTitle>Create Room</CardTitle>
           <CardDescription>
-            You will be the owner of this room. We consider that you paid for the pizza today!
+            You will be the owner of this room. We consider that you paid for
+            the pizza today!
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -82,7 +82,9 @@ export default function NewRoom() {
             <Textarea
               id="roomDescription"
               value={description}
-              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setDescription(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                setDescription(e.target.value)
+              }
               placeholder="Enter room description"
             />
           </div>
@@ -92,5 +94,35 @@ export default function NewRoom() {
         </CardFooter>
       </Card>
     </div>
-  )
+  );
 }
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        destination: "/",
+        permanent: false,
+      },
+    };
+  }
+
+  const userProfile = await db.userProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!userProfile?.id) {
+    return {
+      redirect: {
+        destination: "/profile",
+        permanent: false,
+      },
+    };
+  }
+
+  return {
+    props: { session, userProfile },
+  };
+};

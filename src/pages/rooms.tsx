@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/router";
 import { type GetServerSidePropsContext } from "next";
 import { getServerSession } from "next-auth";

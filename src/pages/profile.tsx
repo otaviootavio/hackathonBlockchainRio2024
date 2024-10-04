@@ -44,8 +44,6 @@ const Profile = () => {
   const [editMode, setEditMode] = useState(false);
   const router = useRouter();
 
-  if (!session.data) return <SkeletonProfile />;
-
   const { data: profile, refetch: refetchProfile } =
     api.userProfile.getUserProfileByUserId.useQuery({
       userId: session.data?.user?.id ?? "",
@@ -65,6 +63,9 @@ const Profile = () => {
       wallet: profile?.wallet ?? "",
     },
   });
+
+  if (!session.data) return <SkeletonProfile />;
+
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const adjustedValues = {
@@ -109,7 +110,7 @@ const Profile = () => {
               render={({ field }) => (
                 <Input
                   id="name"
-                  placeholder={profile?.name || "Enter your name"}
+                  placeholder={profile?.name ?? "Enter your name"}
                   {...field}
                   value={field.value ?? ""}
                   disabled={!editMode}

@@ -1,3 +1,5 @@
+"use client";
+
 import { signIn } from "next-auth/react";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -5,7 +7,6 @@ import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
   Tooltip,
-  TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "~/components/ui/tooltip";

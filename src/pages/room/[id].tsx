@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/router";
 import { getSession, type GetSessionParams, useSession } from "next-auth/react";
 import { ParticipantsList } from "~/_components/ParticipantsList";
@@ -12,10 +14,6 @@ import { ModalProvider } from "~/_context/ui/ModalProvider";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
 } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 
