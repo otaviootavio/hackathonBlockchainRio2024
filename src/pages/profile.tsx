@@ -98,11 +98,6 @@ const Profile = () => {
     <Card>
       <CardHeader className="flex justify-between">
         <CardTitle className="my-4 text-2xl font-bold">User Profile</CardTitle>
-        {!!profile && (
-          <Button onClick={() => setEditMode(!editMode)} variant="outline">
-            {editMode ? "Cancel" : "Edit"}
-          </Button>
-        )}
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -134,16 +129,29 @@ const Profile = () => {
               disabled
             />
           </div>
-          <Button type="submit" color="primary" variant="outline">
-            {profile ? "Save" : "Create"}
-          </Button>
-          {profile && (
-            <Link href="/update-payment-method/1">
-              <Button color="danger" variant="outline">
-                Change Wallet
+          <div className="flex gap-2 ">
+            {!!profile && (
+              <Button
+                onClick={() => setEditMode(!editMode)}
+                variant="outline"
+                type="button"
+              >
+                {editMode ? "Cancel" : "Edit"}
               </Button>
-            </Link>
-          )}
+            )}
+            {editMode && (
+              <Button type="submit" color="primary" variant="outline">
+                {profile ? "Save" : "Create"}
+              </Button>
+            )}
+            {profile && (
+              <Link href="/update-payment-method/1">
+                <Button variant="destructive">
+                  Change Wallet
+                </Button>
+              </Link>
+            )}
+          </div>
         </form>
       </CardContent>
     </Card>
