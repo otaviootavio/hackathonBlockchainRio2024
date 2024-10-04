@@ -4,6 +4,14 @@ import timeElapsedSince from "~/utils/dateFromNow";
 import OwnerTag from "./OwnerTag";
 import { PaymentFlow } from "../payment/PaymentFlow";
 import { CompletedPaymentExplorer } from "../payment/CompletedPaymentExplorer";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+  CardDescription,
+} from "~/components/ui/card";
 
 const UserViewsHimself = ({
   participant,
@@ -35,48 +43,43 @@ const UserViewsHimself = ({
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
 
   return (
-    <div className="flex flex-col justify-between rounded border border-slate-500 bg-slate-50 p-4">
-      <div className="flex flex-row">
-        <div className="flex grow flex-row justify-between">
-          <p className="text-xs text-slate-600">
-            Joined {timeElapsedSince(createdAt)}
-          </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>{name} (You)</span>
+          <span>{amount} XRP</span>
+        </CardTitle>
+        <CardDescription>Joined {timeElapsedSince(createdAt)}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <PaymentStatusTag payed={payed} />
+            {role === "owner" && <OwnerTag />}
+          </div>
+          <WeightAdjuster
+            participantId={userParticipantId}
+            weight={weight}
+            canUserEditThisParticipantWeight={
+              !room.isReadyForSettlement && !room.hasSettled
+            }
+          />
         </div>
-      </div>
-
-      <div className="flex grow flex-row justify-between">
-        <h2 className="text-2xl font-bold">{name}</h2>
-        <div className="self-center p-2 text-right">{amount}</div>
-      </div>
-
-      <div className="flex grow flex-row justify-between">
-        <div className="flex flex-row items-center justify-start gap-3">
-          <PaymentStatusTag payed={payed} />
-          {role === "owner" && <OwnerTag />}
-          {!participant.payed && (
-            <PaymentFlow
-              roomId={participant.roomId}
-              participantId={userParticipantId}
-              amount={amount}
-              destination={ownerAddress}
-            />
-          )}
-        </div>
-
-        <WeightAdjuster
-          participantId={userParticipantId}
-          weight={weight}
-          canUserEditThisParticipantWeight={
-            !room.isReadyForSettlement && !room.hasSettled
-          }
-        />
-      </div>
-      <div>
-        {role !== "owner" && participant.payed && (
+      </CardContent>
+      <CardFooter className="flex flex-col items-start space-y-2">
+        {!payed && (
+          <PaymentFlow
+            roomId={participant.roomId}
+            participantId={userParticipantId}
+            amount={amount}
+            destination={ownerAddress}
+          />
+        )}
+        {role !== "owner" && payed && (
           <CompletedPaymentExplorer participantId={userParticipantId} />
         )}
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 

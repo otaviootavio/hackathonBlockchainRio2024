@@ -1,14 +1,18 @@
+"use client";
+
 import { useRouter } from "next/router";
-import { type GetSessionParams, getSession, useSession } from "next-auth/react";
+import { type GetServerSidePropsContext } from "next";
+import { getServerSession } from "next-auth";
 import { api } from "~/utils/api";
 import { Room } from "../_components/room/Room";
-
 import { db } from "~/server/db";
+import { Button } from "~/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "~/components/ui/card";
+import { authOptions } from "~/server/auth";
+import { Skeleton } from "~/components/ui/skeleton";
 
-export async function getServerSideProps(
-  context: GetSessionParams | undefined,
-) {
-  const session = await getSession(context);
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session) {
     return {
@@ -33,56 +37,62 @@ export async function getServerSideProps(
   }
 
   return {
-    props: { session },
+    props: { userId: session.user.id },
   };
 }
 
-export default function Rooms() {
+export default function Rooms({ userId }: { userId: string }) {
   const router = useRouter();
-  const session = useSession();
-
-  const rooms = api.room.getRoomsByUserIdInRoom.useQuery({
-    userId: session.data?.user?.id ?? "",
+  const { data: rooms, isLoading } = api.room.getRoomsByUserIdInRoom.useQuery({
+    userId,
   });
 
   return (
-    <>
-      <div className="flex flex-row items-center justify-between rounded-lg border border-slate-300 bg-slate-50 p-2 shadow-sm">
-        <h2 className=" text-2xl font-bold">My Rooms</h2>
-        <div>
-          <button
-            type="button"
-            className="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-            onClick={() => void router.push("/room/new")}
-          >
-            New Room
-          </button>
-        </div>
-      </div>
-      <div>
-        {rooms.isLoading ? (
-          <div>Loading...</div>
-        ) : rooms.data?.length ? (
-          rooms.data.map((room) => (
-            <div
-              key={room.id}
-              className="my-2 rounded-xl border border-slate-300 bg-slate-50 p-2 shadow-sm"
-            >
-              <Room room={room} />
-            </div>
-          ))
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>My Rooms</CardTitle>
+        <Button onClick={() => void router.push("/room/new")}>New Room</Button>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <RoomsSkeleton />
+        ) : rooms && rooms.length > 0 ? (
+          <div className="divide-y divide-gray-200">
+            {rooms.map((room) => (
+              <Room key={room.id} room={room} />
+            ))}
+          </div>
         ) : (
-          <div className="my-2 rounded-xl border border-slate-300 bg-white p-2 shadow-sm">
-            <div className="flex flex-row justify-between">
-              <article className="text-wrap break-all">
-                <h2 className="slate-700 text-xl text-slate-600">No Rooms</h2>
-                <p className="text-lg text-slate-600">Create a room to start</p>
-              </article>
-              <div className="flex flex-col justify-around gap-2"></div>
-            </div>
+          <div className="py-4 text-center">
+            <h2 className="text-xl font-semibold text-muted-foreground">
+              No Rooms
+            </h2>
+            <p className="text-lg text-muted-foreground">
+              Create a room to start
+            </p>
           </div>
         )}
-      </div>
-    </>
+      </CardContent>
+    </Card>
+  );
+}
+
+function RoomsSkeleton() {
+  return (
+    <div className="space-y-4">
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="flex items-start justify-between">
+          <div>
+            <Skeleton className="mb-2 h-5 w-40" />
+            <Skeleton className="mb-1 h-4 w-60" />
+            <Skeleton className="h-3 w-32" />
+          </div>
+          <div className="flex space-x-2">
+            <Skeleton className="h-8 w-16" />
+            <Skeleton className="h-8 w-16" />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }

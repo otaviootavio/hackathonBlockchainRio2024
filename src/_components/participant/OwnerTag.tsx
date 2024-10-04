@@ -1,11 +1,12 @@
 import { CgCrown } from "react-icons/cg";
+import { Badge } from "~/components/ui/badge";
 
 const OwnerTag = () => {
   return (
-    <div className="inline-flex items-center justify-start whitespace-nowrap text-sm font-bold text-blue-500">
+    <Badge variant="secondary" className="flex items-center">
       <CgCrown className="mr-1" />
       Owner
-    </div>
+    </Badge>
   );
 };
 

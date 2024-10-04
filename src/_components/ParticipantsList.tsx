@@ -1,102 +1,65 @@
+// src/_components/ParticipantsList.tsx
 import { useSession } from "next-auth/react";
 import React from "react";
-import ParticipantViewsOthers from "./participant/ParticipantViewsOthers";
 import { useRoomContext } from "~/_context/room/RoomContext";
+import { Card, CardContent } from "~/components/ui/card";
+import { Skeleton } from "~/components/ui/skeleton";
 import UserViewsHimself from "./participant/UserViewsHimself";
 import AdminViewsParticipant from "./participant/AdminViewsParticipant";
+import ParticipantViewsOthers from "./participant/ParticipantViewsOthers";
 
 export const ParticipantsList = () => {
-  const {
-    roomData: room,
-    isUserOwner,
-    isRoomLoading: isLoading,
-  } = useRoomContext();
+  const { roomData: room, isUserOwner, isRoomLoading } = useRoomContext();
   const session = useSession();
 
   const participants = room?.participants ?? [];
-
   const ownerAddress =
     participants.find((p) => p.role === "owner")?.wallet ?? "";
   const currentUserId = session.data?.user?.id;
   const totalWeight = participants.reduce((acc, curr) => acc + curr.weight, 0);
-
   const totalPrice = room?.totalPrice ?? 0;
 
   if (!room) return null;
+  if (isRoomLoading) return <Skeleton className="h-40 w-full" />;
+  if (!participants?.length)
+    return <Card className="p-4">No participants</Card>;
 
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!participants?.length) {
-    return <div>No participants</div>;
-  }
-
-  // filter out current user
-  // then rener current user, if is normal user or admin
-  // then render the users
-
-  const participantsToRender = participants.filter(
-    (p) => p.userId !== currentUserId,
-  );
-
-  const currentUserParticipant = participants.find(
-    (p) => p.userId === currentUserId,
-  );
-
-  if (isUserOwner) {
-    return (
-      <div className="flex flex-col gap-1">
-        {currentUserParticipant && (
-          <div key={currentUserParticipant.userParticipantId} className="p-2">
-            <UserViewsHimself
-              participant={currentUserParticipant}
-              ownerAddress={ownerAddress}
-              room={room}
-              totalPrice={totalPrice}
-              totalWeight={totalWeight}
-            />
-          </div>
-        )}
-        {participantsToRender.map((participant) => {
-          return (
-            <div key={participant.userParticipantId} className="p-2">
+  return (
+    <Card>
+      <CardContent className="space-y-4 p-4">
+        {participants.map((participant) => {
+          if (participant.userId === currentUserId) {
+            return (
+              <UserViewsHimself
+                key={participant.userParticipantId}
+                participant={participant}
+                ownerAddress={ownerAddress}
+                room={room}
+                totalPrice={totalPrice}
+                totalWeight={totalWeight}
+              />
+            );
+          } else if (isUserOwner) {
+            return (
               <AdminViewsParticipant
+                key={participant.userParticipantId}
                 participant={participant}
                 totalPrice={totalPrice}
                 totalWeight={totalWeight}
               />
-            </div>
-          );
+            );
+          } else {
+            return (
+              <ParticipantViewsOthers
+                key={participant.userParticipantId}
+                participant={participant}
+                totalPrice={totalPrice}
+                totalWeight={totalWeight}
+              />
+            );
+          }
         })}
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-1">
-      {currentUserParticipant && (
-        <div key={currentUserParticipant.userParticipantId} className="p-2">
-          <UserViewsHimself
-            participant={currentUserParticipant}
-            ownerAddress={ownerAddress}
-            room={room}
-            totalPrice={totalPrice}
-            totalWeight={totalWeight}
-          />
-        </div>
-      )}
-      {participantsToRender.map((participant) => {
-        return (
-          <div key={participant.userParticipantId} className="p-2">
-            <ParticipantViewsOthers
-              participant={participant}
-              totalPrice={totalPrice}
-              totalWeight={totalWeight}
-            />
-          </div>
-        );
-      })}
-    </div>
+      </CardContent>
+    </Card>
   );
 };

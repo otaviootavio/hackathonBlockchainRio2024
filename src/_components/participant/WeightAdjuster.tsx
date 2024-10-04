@@ -1,5 +1,8 @@
 import { LiaPizzaSliceSolid } from "react-icons/lia";
 import { useRoomContext } from "~/_context/room/RoomContext";
+import { Button } from "~/components/ui/button";
+import { Badge } from "~/components/ui/badge";
+import React from "react";
 
 const WeightAdjuster = ({
   participantId,
@@ -10,30 +13,35 @@ const WeightAdjuster = ({
   weight: number;
   canUserEditThisParticipantWeight: boolean;
 }) => {
-  const { handleWeightChange } = useRoomContext();
+  const { handleWeightChange, roomData: room } = useRoomContext();
+
+  const abledToChangeWeight = canUserEditThisParticipantWeight && !!room && !room.isReadyForSettlement;
 
   return (
-    <div className="flex w-24 items-center justify-end">
-      {canUserEditThisParticipantWeight && (
+    <div className="flex items-center space-x-2">
+      {abledToChangeWeight && (
         <>
-          <button
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => handleWeightChange(weight - 1, participantId)}
-            type="button"
-            className="me-2 rounded-full bg-gray-300 p-1 px-2 text-xs font-medium hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300"
             disabled={weight <= 1}
           >
             -
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
             onClick={() => handleWeightChange(weight + 1, participantId)}
-            type="button"
-            className="me-2 rounded-full bg-gray-300 p-1 px-2 text-xs font-medium hover:bg-gray-500 focus:outline-none focus:ring-4 focus:ring-gray-300"
           >
             +
-          </button>
+          </Button>
         </>
       )}
-      {weight} <LiaPizzaSliceSolid />
+      <Badge variant="secondary" className="flex items-center space-x-1">
+        <span>{weight}</span>
+        <LiaPizzaSliceSolid />
+      </Badge>
     </div>
   );
 };

@@ -4,6 +4,14 @@ import PaymentStatusTag from "./PaymentTagStatus";
 import RemoveButton from "./RemoveButton";
 import WeightAdjuster from "./WeightAdjuster";
 import timeElapsedSince from "~/utils/dateFromNow";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+  CardDescription,
+} from "~/components/ui/card";
 
 const AdminViewsParticipant = ({
   participant,
@@ -28,37 +36,32 @@ const AdminViewsParticipant = ({
   const amount = ((totalPrice * weight) / totalWeight).toFixed(2);
 
   return (
-    <div className="flex flex-col justify-start rounded border border-slate-300 bg-slate-50 p-4">
-      <div className="flex flex-row">
-        <div className="flex grow flex-row justify-between">
-          <p className="text-xs text-slate-600">
-            Joined {timeElapsedSince(createdAt)}
-          </p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center justify-between">
+          <span>{name}</span>
+          <span>{amount} XRP</span>
+        </CardTitle>
+        <CardDescription>Joined {timeElapsedSince(createdAt)}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <PaymentStatusTag payed={payed} />
+            {role === "owner" && <OwnerTag />}
+            <RemoveButton participantId={userParticipantId} />
+          </div>
+          <WeightAdjuster
+            participantId={userParticipantId}
+            weight={weight}
+            canUserEditThisParticipantWeight={true}
+          />
         </div>
-      </div>
-
-      <div className="flex grow flex-row justify-between">
-        <h2 className="text-2xl font-bold">{name}</h2>
-        <div className="self-center p-2 text-right">{amount}</div>
-      </div>
-
-      <div className="flex grow flex-row justify-between">
-        <div className="flex flex-row items-center justify-start gap-3">
-          <PaymentStatusTag payed={payed} />
-          {role === "owner" && <OwnerTag />}
-          <RemoveButton participantId={userParticipantId} />
-        </div>
-
-        <WeightAdjuster
-          participantId={userParticipantId}
-          weight={weight}
-          canUserEditThisParticipantWeight={true}
-        />
-      </div>
-      <div>
+      </CardContent>
+      <CardFooter>
         <CompletedPaymentExplorer participantId={userParticipantId} />
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 

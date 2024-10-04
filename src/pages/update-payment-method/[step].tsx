@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { useRouter } from "next/router";
 import { api } from "~/utils/api";
@@ -6,6 +8,10 @@ import { useSignRequest } from "~/_hooks/useRequestForSign";
 import Link from "next/link";
 import { z } from "zod";
 import { type ParsedUrlQuery } from "querystring";
+import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
+import { Input } from "~/components/ui/input";
+import { Button } from "~/components/ui/button";
+import { Step, Steps } from "~/components/ui/step";
 
 const toUrlQuerySchema = z.object({
   toUrl: z
@@ -26,38 +32,38 @@ const StepOne = ({
   profile: { wallet: string | null };
   onRequestChange: (e: React.FormEvent) => void;
 }) => (
-  <div className="flex flex-col gap-4">
-    <h2 className="text-xl font-bold">Current Wallet</h2>
-    <input
-      type="text"
-      value={profile?.wallet ?? "No wallet yet :("}
-      disabled
-      className="w-full cursor-not-allowed rounded border border-gray-300 bg-gray-200 px-3 py-2 text-gray-700 shadow-sm"
-    />
-    <button
-      onClick={onRequestChange}
-      className="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-    >
-      Request Wallet Change
-    </button>
-  </div>
+  <Card>
+    <CardHeader>
+      <CardTitle>Current Wallet</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <Input
+        type="text"
+        value={profile?.wallet ?? "No wallet yet :("}
+        disabled
+        className="cursor-not-allowed"
+      />
+      <Button onClick={onRequestChange}>Request Wallet Change</Button>
+    </CardContent>
+  </Card>
 );
 
 const StepTwo = ({ toUrl }: { toUrl: string | null }) => {
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="text-xl font-bold">Sign the Request</h2>
-      {toUrl ? (
-        <Link
-          href={toUrl}
-          className="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-        >
-          Sign Request
-        </Link>
-      ) : (
-        <p>Preparing signing request...</p>
-      )}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Sign the Request</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {toUrl ? (
+          <Button asChild>
+            <Link href={toUrl}>Sign Request</Link>
+          </Button>
+        ) : (
+          <p>Preparing signing request...</p>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
@@ -68,20 +74,19 @@ const StepThree = ({
   wallet: string;
   onAccept: () => void;
 }) => (
-  <div>
-    <h2 className="mb-4 text-xl font-bold">Review Changes</h2>
-    <p>Your wallet change request has been signed and processed.</p>
-    <p className="mt-2 font-bold">New Wallet: {wallet}</p>
-    <button
-      onClick={onAccept}
-      className="mt-4 rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-    >
-      Accept
-    </button>
-  </div>
+  <Card>
+    <CardHeader>
+      <CardTitle>Review Changes</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-4">
+      <p>Your wallet change request has been signed and processed.</p>
+      <p className="font-bold">New Wallet: {wallet}</p>
+      <Button onClick={onAccept}>Accept</Button>
+    </CardContent>
+  </Card>
 );
 
-const UpdatePaymentMethod = () => {
+export default function UpdatePaymentMethod() {
   const router = useRouter();
   const session = useSession();
   const { createSignRequest } = useSignRequest();
@@ -90,7 +95,7 @@ const UpdatePaymentMethod = () => {
     userId: session.data?.user?.id ?? "",
   });
 
-  const step = Number(router.query.step) || 1;
+  const step = Number(router.query?.step) || 1;
 
   const handleRequestChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,33 +126,12 @@ const UpdatePaymentMethod = () => {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <ol className="mb-8 flex w-full items-center space-x-2 rounded-lg border border-gray-200 bg-white p-3 text-center text-sm font-medium text-gray-500 shadow-sm sm:space-x-4 sm:p-4 sm:text-base rtl:space-x-reverse">
-        <li className={`flex items-center ${step >= 1 ? "text-blue-600" : ""}`}>
-          <span
-            className={`me-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${step >= 1 ? "border-blue-600" : "border-gray-500"} text-xs`}
-          >
-            1
-          </span>
-          Request Change
-        </li>
-        <li className={`flex items-center ${step >= 2 ? "text-blue-600" : ""}`}>
-          <span
-            className={`me-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${step >= 2 ? "border-blue-600" : "border-gray-500"} text-xs`}
-          >
-            2
-          </span>
-          Sign
-        </li>
-        <li className={`flex items-center ${step >= 3 ? "text-blue-600" : ""}`}>
-          <span
-            className={`me-2 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border ${step >= 3 ? "border-blue-600" : "border-gray-500"} text-xs`}
-          >
-            3
-          </span>
-          Review
-        </li>
-      </ol>
+    <div className="mx-auto w-full max-w-md space-y-8">
+      <Steps value={step} className="mb-8">
+        <Step value={1}>Request Change</Step>
+        <Step value={2}>Sign</Step>
+        <Step value={3}>Review</Step>
+      </Steps>
 
       {step === 1 && (
         <StepOne profile={profile} onRequestChange={handleRequestChange} />
@@ -160,6 +144,4 @@ const UpdatePaymentMethod = () => {
       )}
     </div>
   );
-};
-
-export default UpdatePaymentMethod;
+}

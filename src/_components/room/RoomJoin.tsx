@@ -1,28 +1,60 @@
+"use client";
+
 import React from "react";
 import { useRoomContext } from "~/_context/room/RoomContext";
+import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 
-export const RoomJoin = () => {
+export function RoomJoin() {
   const { roomData: room, joinRoom } = useRoomContext();
 
   if (!room) return null;
 
   return (
-    <div className="mt-1 bg-slate-100 p-1">
-      <div className="flex flex-row justify-center rounded-lg">
-        {room?.isOpen ? (
-          <button
-            onClick={joinRoom}
-            type="button"
-            className="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-          >
-            Join room
-          </button>
-        ) : (
-          <div className="rounded-full bg-red-400 px-5 py-2.5 text-center font-bold text-white">
-            <p>Closed</p>
-          </div>
-        )}
-      </div>
+    <div className="flex flex-row justify-center">
+      {room.isOpen ? (
+        <Card className="mx-auto mt-8 w-full max-w-md">
+          <CardContent className="p-6">
+            <CardHeader>
+              <CardTitle>You discovered a room!</CardTitle>
+              <CardDescription>
+                Click the button to join and pay for the pizza
+              </CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button
+                onClick={joinRoom}
+                variant="default"
+                className="px-5 py-2.5 font-medium"
+              >
+                Join room
+              </Button>
+            </CardFooter>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="mx-auto mt-8 w-full max-w-md">
+          <CardContent className="p-6">
+            <CardHeader>
+              <CardTitle>Ops!</CardTitle>
+              <CardDescription>Ask the owner to open the room</CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Badge variant="destructive" className="px-5 py-2.5 font-bold">
+                Closed
+              </Badge>
+            </CardFooter>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
-};
+}

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, type ReactNode } from "react";
 import { api, type RouterOutputs } from "~/utils/api";
 import { useSession } from "next-auth/react";
