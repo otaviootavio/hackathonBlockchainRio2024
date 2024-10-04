@@ -2,6 +2,7 @@ import { LiaPizzaSliceSolid } from "react-icons/lia";
 import { useRoomContext } from "~/_context/room/RoomContext";
 import { Button } from "~/components/ui/button";
 import { Badge } from "~/components/ui/badge";
+import React from "react";
 
 const WeightAdjuster = ({
   participantId,
@@ -12,11 +13,13 @@ const WeightAdjuster = ({
   weight: number;
   canUserEditThisParticipantWeight: boolean;
 }) => {
-  const { handleWeightChange } = useRoomContext();
+  const { handleWeightChange, roomData: room } = useRoomContext();
+
+  const abledToChangeWeight = canUserEditThisParticipantWeight && !!room && !room.isReadyForSettlement;
 
   return (
     <div className="flex items-center space-x-2">
-      {canUserEditThisParticipantWeight && (
+      {abledToChangeWeight && (
         <>
           <Button
             variant="outline"
