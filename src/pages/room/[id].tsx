@@ -9,7 +9,14 @@ import { RoomJoin } from "~/_components/room/RoomJoin";
 import RoomStatus from "~/_components/room/RoomStatus";
 import { RoomHeader } from "~/_components/room/RoomHeader";
 import { ModalProvider } from "~/_context/ui/ModalProvider";
-import { Card, CardContent } from "~/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 
 export async function getServerSideProps(
@@ -50,11 +57,11 @@ export function Room() {
 
   if (isRoomLoading) {
     return (
-      <Card className="w-full max-w-md mx-auto mt-8">
+      <Card className="mx-auto mt-8 w-full max-w-md">
         <CardContent className="p-6">
-          <Skeleton className="w-full h-8 mb-4" />
-          <Skeleton className="w-3/4 h-4 mb-2" />
-          <Skeleton className="w-1/2 h-4" />
+          <Skeleton className="mb-4 h-8 w-full" />
+          <Skeleton className="mb-2 h-4 w-3/4" />
+          <Skeleton className="h-4 w-1/2" />
         </CardContent>
       </Card>
     );
@@ -69,13 +76,7 @@ export function Room() {
   }
 
   if (!isUserParticipant) {
-    return (
-      <Card className="w-full max-w-md mx-auto mt-8">
-        <CardContent className="p-6">
-          <RoomJoin />
-        </CardContent>
-      </Card>
-    );
+    return <RoomJoin />;
   }
 
   return (
